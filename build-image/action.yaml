@@ -1,0 +1,104 @@
+name: "Build image"
+description: "Docker image build and publish"
+inputs:
+  path_to_dockerfile:
+    description: Path to the dockerfile (default = 'Dockerfile')
+    default: "Dockerfile"
+  docker_build_dir:
+    description: Docker build directory (default = '.')
+    default: "."
+  image_name:
+    description: Repo name of the images.
+    required: true
+  image_tag:
+    description: Tag to apply to images.
+    default: snapshot-artifact
+  lifecycle_policy_file:
+    description: Path to the lifecycle policy JSON file (default = 'policy.json')
+    default: "policy.json"
+  backend_s3_bucket:
+    description: Name of the S3bucket for Terraform backend
+    default: "tjeerd-test"
+  backend_iam_role:
+    description: Name of the Terraform backend assumable IAM Role
+    default: "github-actions_terraform-backend"
+  github_iam_role:
+    description: Name of the IAM Role for adding access to ECR repo
+    default: "github-actions_ecr"
+  aws_account_id:
+    description: AWS Account ID
+  aws_region:
+    description: Target AWS Region
+    default: "eu-central-1"
+  backend_dynamodb_table:
+    description: DynamoDB table for State lock
+    default: "tjeerd-test-tf"
+outputs:
+  image_tag:
+    description: "Image tag"
+    value: ${{ steps.build-publish.outputs.image_tag }}
+  full_image:
+    description: "Full image"
+    value: ${{ steps.build-publish.outputs.full_image }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/github-actions-rmodi
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_wrapper: false
+
+    - name: TF init
+      shell: bash
+      run: |
+        set -eux
+        terraform init -upgrade -reconfigure \
+          -backend-config='skip_metadata_api_check=true' \
+          -backend-config='skip_region_validation=true' \
+          -backend-config='skip_credentials_validation=true' \
+          -backend-config='region=${{ inputs.aws_region }}' \
+          -backend-config='bucket=${{ inputs.backend_s3_bucket }}' \
+          -backend-config='key=automated/ecr/terraform-${{ inputs.ECR_REPO_NAME }}.tfstate' \
+          -backend-config='dynamodb_table=${{ inputs.backend_dynamodb_table }}' \
+          -backend-config='role_arn=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.backend_iam_role }}'
+      working-directory: ${{ github.action_path }}
+
+    - name: Create ECR repo [TF apply]
+      shell: bash
+      run: |
+        set -eux
+        terraform apply \
+          -var 'repository_name=${{ inputs.image_name }}' \
+          -var 'lifecycle_policy=${{ inputs.lifecycle_policy_file }}' \
+          -var 'iam_role=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}' \
+          -var 'aws_account_id=${{ inputs.aws_account_id }}' \
+          -auto-approve
+      working-directory: ${{ github.action_path }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+      with:
+        registries: ${{ inputs.aws_account_id }}
+        mask-password: "true" # see: https://github.com/aws-actions/amazon-ecr-login#docker-credentials
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-publish
+      shell: bash
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ inputs.image_name }}
+        IMAGE_TAG: ${{ inputs.image_tag }}
+      run: |
+        docker build "${{ inputs.docker_build_dir }}" -f "${{ inputs.path_to_dockerfile }}" -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        echo "IMAGE $IMAGE_TAG is pushed to $ECR_REGISTRY/$ECR_REPOSITORY"
+        echo "image_tag=$IMAGE_TAG" 
+        echo "full_image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
