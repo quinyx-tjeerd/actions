@@ -23,8 +23,8 @@ inputs:
     description: Name of the Terraform backend assumable IAM Role
     default: "github-actions_terraform-backend"
   github_iam_role:
-    description: Name of the IAM Role for adding access to ECR repo
-    default: "github-actions_ecr"
+    description: Name of the IAM Role for adding access to ECR repo, also needs to assume the terraform role
+    default: "github-actions_github-actions-runner"
   aws_account_id:
     description: AWS Account ID
   aws_region:
