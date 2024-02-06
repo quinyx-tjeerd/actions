@@ -101,6 +101,7 @@ runs:
         for arg in ${{ inputs.build_arguments }}; do
             BUILDARGS="$BUILDARGS --build-arg $arg"
         done
+        echo "Build Args: $BUILDARGS"
         docker build "${{ inputs.docker_build_dir }}" $BUILDARGS -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
         docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
         echo "IMAGE $IMAGE_TAG is pushed to $ECR_REGISTRY/$ECR_REPOSITORY"
