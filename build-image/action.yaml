@@ -95,10 +95,13 @@ runs:
         IMAGE_TAG: ${{ inputs.image_tag }}
       run: |
         BUILDARGS=""
+        if [ "${{ inputs.path_to_dockerfile }}" != "Dockerfile" ]; then
+          BUILDARGS="-f '${{ inputs.docker_build_dir }}/${{ inputs.path_to_dockerfile }}'"
+        fi
         for arg in ${{ inputs.build_arguments }}; do
             BUILDARGS="$BUILDARGS --build-arg $arg"
         done
-        docker build "${{ inputs.docker_build_dir }}" -f "${{ inputs.path_to_dockerfile }}" $BUILDARGS -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        docker build "${{ inputs.docker_build_dir }}" $BUILDARGS -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
         docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
         echo "IMAGE $IMAGE_TAG is pushed to $ECR_REGISTRY/$ECR_REPOSITORY"
         echo "image_tag=$IMAGE_TAG" 
