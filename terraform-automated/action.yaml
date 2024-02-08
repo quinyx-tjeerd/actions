@@ -13,6 +13,8 @@ inputs:
     description: AWS Service, like ECR, Lambda etc (state bucket /automated/$aws_service)
   q_service:
     description: Quinyx Service, like qwfmbackend, osrm etc (state bucket /automated/$aws_service/$q_service)
+  working-directory:
+    description: Specifies the working directory where the Terraform files are
 outputs:
   outputs:
     description: "JSON terraform outputs"
@@ -38,6 +40,7 @@ runs:
           -backend-config='key=automated/${{ inputs.aws_service }}/${{ inputs.q_service }}/terraform.tfstate' \
           -backend-config='dynamodb_table=quinyx-terraform-locks-${{ inputs.aws_region }}' \
           -backend-config='role_arn=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.backend_iam_role }}'
+      working-directory: ${{ inputs.working-directory }}
 
     - name: TF apply
       id: tf-apply
@@ -47,3 +50,4 @@ runs:
         terraform apply \
           -var 'aws_account_id=${{ inputs.aws_account_id }}' \
           -auto-approve
+      working-directory: ${{ inputs.working-directory }}
