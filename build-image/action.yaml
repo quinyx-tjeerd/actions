@@ -48,7 +48,7 @@ runs:
         aws-region: ${{ inputs.aws_region }}
 
     - name: Manage ECR
-      uses: ../terraform-automated
+      uses: quinyx-tjeerd/actions/terraform-automated@main
       env:
         TF_VAR_repository_name: ${{ inputs.image_name }}
         TF_VAR_lifecycle_policy: ${{ inputs.lifecycle_policy_file }}
@@ -59,7 +59,6 @@ runs:
         aws_region: ${{ inputs.aws_region }}
         aws_service: ECR
         q_service: ${{ inputs.image_name}}
-      working-directory: ${{ github.action_path }}
 
     # - name: Setup Terraform
     #   uses: hashicorp/setup-terraform@v2
