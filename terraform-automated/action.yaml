@@ -15,10 +15,6 @@ inputs:
     description: Quinyx Service, like qwfmbackend, osrm etc (state bucket /automated/$aws_service/$q_service)
   working-directory:
     description: Specifies the working directory where the Terraform files are
-outputs:
-  outputs:
-    description: "JSON terraform outputs"
-    value: ${{ steps.tf-apply.outputs }}
 runs:
   using: "composite"
   steps:
@@ -51,3 +47,13 @@ runs:
           -var 'aws_account_id=${{ inputs.aws_account_id }}' \
           -auto-approve
       working-directory: ${{ inputs.working-directory }}
+
+    - name: TF Outputs
+      shell: bash
+      run: |
+        set -eux
+        echo ${{ steps.tf-apply.outputs }} | jq -c '.'
+        echo "transform with jq"
+        echo ${{ steps.tf-apply.outputs }} | jq -c '. | map(split("/")[0]) | unique'
+        DATA=$(echo ${{ steps.tf-apply.outputs }} | jq -c '. | map(split("/")[0]) | unique')
+        echo "::set-output name=auth_token::$DATA"
