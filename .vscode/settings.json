@@ -1,6 +1,7 @@
 {
     "conventionalCommits.scopes": [
         "hello",
-        "build-image"
+        "build-image",
+        "terraform-automated"
     ]
 }
