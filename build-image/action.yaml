@@ -32,11 +32,11 @@ inputs:
     default: ""
 outputs:
   image_tag:
-    description: "Image tag"
-    value: ${{ steps.build-publish.outputs.image_tag }}
+    description: "Digest"
+    value: ${{ steps.build-publish.outputs.digest }}
   full_image:
     description: "Full image"
-    value: ${{ steps.build-publish.outputs.full_image }}
+    value: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}@${{ steps.build-publish.outputs.digest }}
 runs:
   using: "composite"
   steps:
@@ -61,38 +61,6 @@ runs:
         q_service: ${{ inputs.image_name}}
         working-directory: ${{ github.action_path }}
 
-    # - name: Setup Terraform
-    #   uses: hashicorp/setup-terraform@v2
-    #   with:
-    #     terraform_wrapper: false
-
-    # - name: TF init
-    #   shell: bash
-    #   run: |
-    #     set -eux
-    #     terraform init -upgrade -reconfigure \
-    #       -backend-config='skip_metadata_api_check=true' \
-    #       -backend-config='skip_region_validation=true' \
-    #       -backend-config='skip_credentials_validation=true' \
-    #       -backend-config='region=${{ inputs.aws_region }}' \
-    #       -backend-config='bucket=quinyx-terraform-state-${{ inputs.aws_region }}' \
-    #       -backend-config='key=automated/ecr/${{ inputs.image_name }}/terraform.tfstate' \
-    #       -backend-config='dynamodb_table=quinyx-terraform-locks-${{ inputs.aws_region }}' \
-    #       -backend-config='role_arn=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.backend_iam_role }}'
-    #   working-directory: ${{ github.action_path }}
-
-    # - name: Create ECR repo [TF apply]
-    #   shell: bash
-    #   run: |
-    #     set -eux
-    #     terraform apply \
-    #       -var 'repository_name=${{ inputs.image_name }}' \
-    #       -var 'lifecycle_policy=${{ inputs.lifecycle_policy_file }}' \
-    #       -var 'iam_role=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}' \
-    #       -var 'aws_account_id=${{ inputs.aws_account_id }}' \
-    #       -auto-approve
-    #   working-directory: ${{ github.action_path }}
-
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
@@ -100,24 +68,40 @@ runs:
         registries: ${{ inputs.aws_account_id }}
         mask-password: "true" # see: https://github.com/aws-actions/amazon-ecr-login#docker-credentials
 
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-publish
-      shell: bash
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ inputs.image_name }}
-        IMAGE_TAG: ${{ inputs.image_tag }}
-      run: |
-        BUILDARGS=""
-        if [ "${{ inputs.path_to_dockerfile }}" != "Dockerfile" ]; then
-          BUILDARGS="-f '${{ inputs.docker_build_dir }}/${{ inputs.path_to_dockerfile }}'"
-        fi
-        for arg in ${{ inputs.build_arguments }}; do
-            BUILDARGS="$BUILDARGS --build-arg $arg"
-        done
-        echo "Build Args: $BUILDARGS"
-        docker build "${{ inputs.docker_build_dir }}" $BUILDARGS -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-        docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-        echo "IMAGE $IMAGE_TAG is pushed to $ECR_REGISTRY/$ECR_REPOSITORY"
-        echo "image_tag=$IMAGE_TAG" 
-        echo "full_image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    # - name: Build, tag, and push image to Amazon ECR
+    #   id: build-publish
+    #   shell: bash
+    #   env:
+    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #     ECR_REPOSITORY: ${{ inputs.image_name }}
+    #     IMAGE_TAG: ${{ inputs.image_tag }}
+    #   run: |
+    #     BUILDARGS=""
+    #     if [ "${{ inputs.path_to_dockerfile }}" != "Dockerfile" ]; then
+    #       BUILDARGS="-f '${{ inputs.docker_build_dir }}/${{ inputs.path_to_dockerfile }}'"
+    #     fi
+    #     for arg in ${{ inputs.build_arguments }}; do
+    #         BUILDARGS="$BUILDARGS --build-arg $arg"
+    #     done
+    #     echo "Build Args: $BUILDARGS"
+    #     docker build "${{ inputs.docker_build_dir }}" $BUILDARGS -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    #     docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    #     echo "IMAGE $IMAGE_TAG is pushed to $ECR_REGISTRY/$ECR_REPOSITORY"
+    #     echo "image_tag=$IMAGE_TAG"
+    #     echo "full_image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+    - uses: docker/metadata-action@v4
+      id: metadata
+      with:
+        images: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}
+    - name: build-publish
+      uses: int128/kaniko-action@v1
+      with:
+        push: true
+        tags: ${{ steps.metadata.outputs.tags }}
+        labels: ${{ steps.metadata.outputs.labels }}
+        cache: true
+        cache-repository: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}/cache
+        context: ${{ inputs.docker_build_dir }}
+        file: ${{ inputs.path_to_dockerfile }}
+        build-args: ${{ inputs.build_arguments }}
