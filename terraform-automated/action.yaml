@@ -47,13 +47,3 @@ runs:
           -var 'aws_account_id=${{ inputs.aws_account_id }}' \
           -auto-approve
       working-directory: ${{ inputs.working-directory }}
-
-    - name: TF Outputs
-      shell: bash
-      run: |
-        set -eux
-        echo $(echo ${{ steps.tf-apply.outputs }} | jq -c '.')
-        echo "transform with jq"
-        DATA=$(echo ${{ steps.tf-apply.outputs }} | jq -c '. | map(split("/")[0]) | unique')
-        echo $DATA
-        echo "::set-output name=auth_token::$DATA"
