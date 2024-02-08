@@ -47,37 +47,51 @@ runs:
         role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
         aws-region: ${{ inputs.aws_region }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
+    - name: Manage ECR
+      uses: ../terraform-automated
+      env:
+        TF_VAR_repository_name: ${{ inputs.image_name }}
+        TF_VAR_lifecycle_policy: ${{ inputs.lifecycle_policy_file }}
+        TF_VAR_iam_role: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
       with:
-        terraform_wrapper: false
-
-    - name: TF init
-      shell: bash
-      run: |
-        set -eux
-        terraform init -upgrade -reconfigure \
-          -backend-config='skip_metadata_api_check=true' \
-          -backend-config='skip_region_validation=true' \
-          -backend-config='skip_credentials_validation=true' \
-          -backend-config='region=${{ inputs.aws_region }}' \
-          -backend-config='bucket=quinyx-terraform-state-${{ inputs.aws_region }}' \
-          -backend-config='key=automated/ecr/${{ inputs.image_name }}/terraform.tfstate' \
-          -backend-config='dynamodb_table=quinyx-terraform-locks-${{ inputs.aws_region }}' \
-          -backend-config='role_arn=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.backend_iam_role }}'
+        backend_iam_role: ${{ inputs.backend_iam_role }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+        aws_service: ECR
+        q_service: ${{ inputs.image_name}}
       working-directory: ${{ github.action_path }}
 
-    - name: Create ECR repo [TF apply]
-      shell: bash
-      run: |
-        set -eux
-        terraform apply \
-          -var 'repository_name=${{ inputs.image_name }}' \
-          -var 'lifecycle_policy=${{ inputs.lifecycle_policy_file }}' \
-          -var 'iam_role=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}' \
-          -var 'aws_account_id=${{ inputs.aws_account_id }}' \
-          -auto-approve
-      working-directory: ${{ github.action_path }}
+    # - name: Setup Terraform
+    #   uses: hashicorp/setup-terraform@v2
+    #   with:
+    #     terraform_wrapper: false
+
+    # - name: TF init
+    #   shell: bash
+    #   run: |
+    #     set -eux
+    #     terraform init -upgrade -reconfigure \
+    #       -backend-config='skip_metadata_api_check=true' \
+    #       -backend-config='skip_region_validation=true' \
+    #       -backend-config='skip_credentials_validation=true' \
+    #       -backend-config='region=${{ inputs.aws_region }}' \
+    #       -backend-config='bucket=quinyx-terraform-state-${{ inputs.aws_region }}' \
+    #       -backend-config='key=automated/ecr/${{ inputs.image_name }}/terraform.tfstate' \
+    #       -backend-config='dynamodb_table=quinyx-terraform-locks-${{ inputs.aws_region }}' \
+    #       -backend-config='role_arn=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.backend_iam_role }}'
+    #   working-directory: ${{ github.action_path }}
+
+    # - name: Create ECR repo [TF apply]
+    #   shell: bash
+    #   run: |
+    #     set -eux
+    #     terraform apply \
+    #       -var 'repository_name=${{ inputs.image_name }}' \
+    #       -var 'lifecycle_policy=${{ inputs.lifecycle_policy_file }}' \
+    #       -var 'iam_role=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}' \
+    #       -var 'aws_account_id=${{ inputs.aws_account_id }}' \
+    #       -auto-approve
+    #   working-directory: ${{ github.action_path }}
 
     - name: Login to Amazon ECR
       id: login-ecr

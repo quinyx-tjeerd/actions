@@ -21,7 +21,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
+      uses: hashicorp/setup-terraform@v3
       with:
         terraform_wrapper: false
 
@@ -38,7 +38,6 @@ runs:
           -backend-config='key=automated/${{ inputs.aws_service }}/${{ inputs.q_service }}/terraform.tfstate' \
           -backend-config='dynamodb_table=quinyx-terraform-locks-${{ inputs.aws_region }}' \
           -backend-config='role_arn=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.backend_iam_role }}'
-      working-directory: ${{ github.action_path }}
 
     - name: TF apply
       id: tf-apply
@@ -48,4 +47,3 @@ runs:
         terraform apply \
           -var 'aws_account_id=${{ inputs.aws_account_id }}' \
           -auto-approve
-      working-directory: ${{ github.action_path }}
