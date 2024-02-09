@@ -103,5 +103,5 @@ runs:
         cache: true
         cache-repository: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}/cache
         context: ${{ inputs.docker_build_dir }}
-        file: ${{ inputs.path_to_dockerfile }}
+        file: "{context}/${{ inputs.path_to_dockerfile }}"
         build-args: ${{ inputs.build_arguments }}
