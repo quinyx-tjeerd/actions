@@ -16,6 +16,9 @@ inputs:
   lifecycle_policy_file:
     description: Path to the lifecycle policy JSON file (default = 'policy.json')
     default: "policy.json"
+  cache_lifecycle_policy_file:
+    description: Path to the cache lifecycle policy JSON file (default = 'cache-policy.json')
+    default: "cache-policy.json"
   backend_iam_role:
     description: Name of the Terraform backend assumable IAM Role
     default: "github-actions_terraform-backend"
@@ -52,6 +55,7 @@ runs:
       env:
         TF_VAR_repository_name: ${{ inputs.image_name }}
         TF_VAR_lifecycle_policy: ${{ inputs.lifecycle_policy_file }}
+        TF_VAR_cache_lifecycle_policy: ${{ inputs.cache_lifecycle_policy_file }}
         TF_VAR_iam_role: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
       with:
         backend_iam_role: ${{ inputs.backend_iam_role }}

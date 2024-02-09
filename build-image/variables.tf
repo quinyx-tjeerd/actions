@@ -13,6 +13,11 @@ variable "lifecycle_policy" {
   description = "the lifecycle policy to be applied to the ECR repo"
 }
 
+variable "cache_lifecycle_policy" {
+  type        = string
+  description = "the lifecycle policy to be applied to the ECR cache repo"
+}
+
 variable "aws_account_id" {
   description = "Target AWS Account ID"
   type        = string
