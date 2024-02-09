@@ -90,10 +90,14 @@ runs:
     #     echo "image_tag=$IMAGE_TAG"
     #     echo "full_image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    - uses: docker/metadata-action@v4
+    - uses: docker/metadata-action@v5
       id: metadata
       with:
         images: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha
     - name: build-publish
       uses: int128/kaniko-action@v1
       with:
@@ -103,5 +107,5 @@ runs:
         cache: true
         cache-repository: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}/cache
         context: ${{ inputs.docker_build_dir }}
-        file: "{context}/${{ inputs.path_to_dockerfile }}"
+        file: ${{ inputs.docker_build_dir }}/${{ inputs.path_to_dockerfile }}
         build-args: ${{ inputs.build_arguments }}
