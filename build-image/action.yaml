@@ -72,28 +72,6 @@ runs:
         registries: ${{ inputs.aws_account_id }}
         mask-password: "true" # see: https://github.com/aws-actions/amazon-ecr-login#docker-credentials
 
-    # - name: Build, tag, and push image to Amazon ECR
-    #   id: build-publish
-    #   shell: bash
-    #   env:
-    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-    #     ECR_REPOSITORY: ${{ inputs.image_name }}
-    #     IMAGE_TAG: ${{ inputs.image_tag }}
-    #   run: |
-    #     BUILDARGS=""
-    #     if [ "${{ inputs.path_to_dockerfile }}" != "Dockerfile" ]; then
-    #       BUILDARGS="-f '${{ inputs.docker_build_dir }}/${{ inputs.path_to_dockerfile }}'"
-    #     fi
-    #     for arg in ${{ inputs.build_arguments }}; do
-    #         BUILDARGS="$BUILDARGS --build-arg $arg"
-    #     done
-    #     echo "Build Args: $BUILDARGS"
-    #     docker build "${{ inputs.docker_build_dir }}" $BUILDARGS -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-    #     docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-    #     echo "IMAGE $IMAGE_TAG is pushed to $ECR_REGISTRY/$ECR_REPOSITORY"
-    #     echo "image_tag=$IMAGE_TAG"
-    #     echo "full_image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-
     - uses: docker/metadata-action@v5
       id: metadata
       with:
@@ -102,7 +80,9 @@ runs:
           type=ref,event=branch
           type=ref,event=pr
           type=sha
-    - name: build-publish
+
+    - name: Build and Publish
+      id: build-publish
       uses: int128/kaniko-action@v1
       with:
         push: true
