@@ -93,3 +93,4 @@ runs:
         context: ${{ inputs.docker_build_dir }}
         file: ${{ inputs.docker_build_dir }}/${{ inputs.path_to_dockerfile }}
         build-args: ${{ inputs.build_arguments }}
+        kaniko-args: --cache-dir=/githubrunner/kaniko/cache
