@@ -2,6 +2,8 @@
     "conventionalCommits.scopes": [
         "hello",
         "build-image",
-        "terraform-automated"
+        "terraform-automated",
+        "aws-iam-roles",
+        "lambda-function"
     ]
 }
