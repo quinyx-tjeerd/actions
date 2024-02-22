@@ -11,34 +11,45 @@ inputs:
     default: "eu-central-1"
   q_service:
     description: Quinyx Service, like 'qwfmbackend' or 'security'
+  function_image:
+    description: Docker image
+  tags:
+    description: Tags to add to the function
+  environment:
+    description: Environment
+  name:
+    description: name after service
+  description:
+    description: description of the function
+  environment_variables:
+    description: environment variables
+    default: "{}"
+  architectures:
+    description: Instruction set architecture for your Lambda function. Valid values are ['x86_64'] and ['arm64'].
+    default: '["arm64"]'
+  vpc:
+    description: whether this function should live within the vpc
+    default: "false"
 runs:
   using: "composite"
   steps:
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
+    - name: Manage Lambda
+      uses: quinyx-tjeerd/actions/terraform-automated@main
+      env:
+        TF_VAR_region: ${{ inputs.aws_region }}
+        TF_VAR_tags: ${{ inputs.tags }}
+        TF_VAR_environment: ${{ inputs.environment }}
+        TF_VAR_service: ${{ inputs.q_service }}
+        TF_VAR_name: ${{ inputs.name }}
+        TF_VAR_description: ${{ inputs.description }}
+        TF_VAR_environment_variables: ${{ inputs.environment_variables }}
+        TF_VAR_architectures: ${{ inputs.architectures }}
+        TF_VAR_vpc: ${{ inputs.vpc == 'true' }}
+        TF_VAR_image: ${{ inputs.function_image }}
       with:
-        terraform_wrapper: false
-
-    - name: TF init
-      shell: bash
-      run: |
-        set -eux
-        terraform init -upgrade -reconfigure \
-          -backend-config='skip_metadata_api_check=true' \
-          -backend-config='skip_region_validation=true' \
-          -backend-config='skip_credentials_validation=true' \
-          -backend-config='region=${{ inputs.aws_region }}' \
-          -backend-config='bucket=quinyx-terraform-state-${{ inputs.aws_region }}' \
-          -backend-config='key=automated/${{ inputs.aws_service }}/${{ inputs.q_service }}/terraform.tfstate' \
-          -backend-config='dynamodb_table=quinyx-terraform-locks-${{ inputs.aws_region }}' \
-          -backend-config='role_arn=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.backend_iam_role }}'
-      working-directory: ${{ github.action_path }}
-
-    - name: TF apply
-      shell: bash
-      run: |
-        set -eux
-        terraform apply \
-          -var 'aws_account_id=${{ inputs.aws_account_id }}' \
-          -auto-approve
-      working-directory: ${{ github.action_path }}
+        backend_iam_role: ${{ inputs.backend_iam_role }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+        aws_service: Lambda
+        q_service: ${{ inputs.image_name}}
+        working-directory: ${{ github.action_path }}

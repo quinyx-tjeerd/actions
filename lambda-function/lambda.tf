@@ -1,20 +1,29 @@
 locals {
+  service_name  = join("-", compact([var.service, var.name]))
+  function_name = join("-", [local.service_name, var.environment])
+  role_name     = coalesce(var.iam_role_name, join("_", ["lambda", local.service_name, var.environment]))
+
   env-vars = merge(
     var.environment_variables,
     {
-      ENVIRONMENT      = var.environment
+      ENVIRONMENT = var.environment
+    }
+  )
+  tags = merge(
+    var.tags,
+    {
+      SERVICE = var.service
     }
   )
   image = try(var.image, null)
   vpc = {
-    enabled = var.vpc
-    subnet_ids = var.vpc ? data.aws_subnets.lambda.ids : null
-    security_group_ids = var.vpc ? [data.aws_security_group.sg.id] : null
+    subnet_ids          = var.vpc ? data.aws_subnets.lambda["subnet"].ids : null
+    security_group_ids  = var.vpc ? [data.aws_security_group.sg["secgroup"].id] : null
   }
 }
 
 data "aws_iam_role" "role" {
-  name = join("_", ["lambda", join("-", [var.service, var.name]), var.environment])
+  name = local.role_name
 }
 
 data "aws_security_group" "sg" {
@@ -46,14 +55,14 @@ module "lambda" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "6.4.0"
 
-  function_name = join("-", [var.service, var.name, var.environment])
-  description   = var.description
+  function_name = local.function_name
+  description   = try(var.description, null)
 
   create_package                          = false
   create_role                             = false
   create_current_version_allowed_triggers = false
   cloudwatch_logs_retention_in_days       = 7
-  lambda_role                             = data.aws_iam_role.role.arn
+  lambda_role                             = try(data.aws_iam_role.role.arn, null)
 
   package_type  = "Image"
   architectures = var.architectures
@@ -62,6 +71,6 @@ module "lambda" {
   environment_variables = local.env-vars
 
   vpc_subnet_ids         = local.vpc.subnet_ids
-  vpc_security_group_ids = [data.aws_security_group.sg.id]
-  tags                   = var.tags
+  vpc_security_group_ids = local.vpc.security_group_ids
+  tags                   = local.tags
 }
