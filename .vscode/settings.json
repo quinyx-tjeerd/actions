@@ -4,6 +4,7 @@
         "build-image",
         "terraform-automated",
         "aws-iam-roles",
-        "lambda-function"
+        "lambda-function",
+        "multiple actions"
     ]
 }
