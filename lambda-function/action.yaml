@@ -4,6 +4,9 @@ inputs:
   backend_iam_role:
     description: Name of the Terraform backend assumable IAM Role
     default: "github-actions_terraform-backend"
+  github_iam_role:
+    description: Name of the IAM Role for managing the Lambda Function, also needs to assume the terraform role
+    default: "github-actions_lambda-function-manager"
   aws_account_id:
     description: AWS Account ID
   aws_region:
@@ -33,7 +36,14 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Manage Lambda
+    - uses: actions/checkout@v4
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Manage Lambda Function
       uses: quinyx-tjeerd/actions/terraform-automated@main
       env:
         TF_VAR_region: ${{ inputs.aws_region }}
@@ -51,5 +61,5 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
         aws_service: Lambda
-        q_service: ${{ inputs.image_name}}
+        q_service: ${{ inputs.q_service}}
         working-directory: ${{ github.action_path }}
