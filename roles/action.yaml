@@ -1,0 +1,43 @@
+name: "Build image"
+description: "Docker image build and publish"
+inputs:
+  roles:
+    description: Yaml containing the role definitions
+  backend_iam_role:
+    description: Name of the Terraform backend assumable IAM Role
+    default: "github-actions_terraform-backend"
+  github_iam_role:
+    description: Name of the IAM Role for adding access to ECR repo, also needs to assume the terraform role
+    default: "github-actions_github-actions-runner"
+  aws_account_id:
+    description: AWS Account ID
+  aws_region:
+    description: Target AWS Region
+    default: "eu-central-1"
+  q_service:
+    description: Quinyx service name
+  tags:
+    description: Tags
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Manage IAM Roles
+      uses: quinyx-tjeerd/actions/terraform-automated@main
+      env:
+        TF_VAR_roles: ${{ inputs.roles }}
+        TF_VAR_tags: ${{ inputs.tags }}
+
+      with:
+        backend_iam_role: ${{ inputs.backend_iam_role }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+        aws_service: IAM-Roles
+        q_service: ${{ inputs.q_service }}
+        working-directory: ${{ github.action_path }}
