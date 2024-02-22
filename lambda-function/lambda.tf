@@ -12,7 +12,7 @@ locals {
   tags = merge(
     var.tags,
     {
-      SERVICE = var.service
+      SERVICE = local.service_name
     }
   )
   image = try(var.image, null)
