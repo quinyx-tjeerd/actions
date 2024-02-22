@@ -98,7 +98,7 @@ resource "aws_iam_role" "role" {
 
 # This is the custom inline policies that we don't think we will be reusing.
 resource "aws_iam_role_policy" "policy_custom" {
-  for_each = { for role, config in local.roles: role => permissions if config.permissions }
+  for_each = { for role, config in local.roles: role => config.permissions if config.permissions }
   role     = aws_iam_role.role[each.key].id
   policy   = each.value
   name     = each.key
