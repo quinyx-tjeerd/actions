@@ -45,5 +45,6 @@ runs:
         set -eux
         terraform apply \
           -var 'aws_account_id=${{ inputs.aws_account_id }}' \
+          -var 'service=${{ inputs.q_service }}' \
           -auto-approve
       working-directory: ${{ inputs.working-directory }}
