@@ -22,3 +22,9 @@ variable "aws_account_id" {
   description = "Target AWS Account ID"
   type        = string
 }
+
+variable "cache" {
+  description = "Whether to create a Cache repositry or not"
+  type        = bool
+  default     = true
+}

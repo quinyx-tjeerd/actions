@@ -33,6 +33,9 @@ inputs:
   build_arguments:
     description: Build arguments to pass to the build
     default: ""
+  cache:
+    description: Enable Kaniko cache
+    default: "true"
 outputs:
   image_tag:
     description: "Digest"
@@ -77,8 +80,6 @@ runs:
       with:
         images: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}
         tags: |
-          type=ref,event=branch
-          type=ref,event=pr
           type=sha
 
     - name: Build and Publish
@@ -88,7 +89,7 @@ runs:
         push: true
         tags: ${{ steps.metadata.outputs.tags }}
         labels: ${{ steps.metadata.outputs.labels }}
-        cache: true
+        cache: ${{ inputs.cache == 'true' }}
         cache-repository: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}/cache
         context: ${{ inputs.docker_build_dir }}
         file: ${{ inputs.docker_build_dir }}/${{ inputs.path_to_dockerfile }}
