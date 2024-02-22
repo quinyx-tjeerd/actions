@@ -47,9 +47,9 @@ runs:
       uses: quinyx-tjeerd/actions/terraform-automated@main
       env:
         TF_VAR_region: ${{ inputs.aws_region }}
-        TF_VAR_tags: ${{ inputs.tags }}
         TF_VAR_environment: ${{ inputs.environment }}
         TF_VAR_service: ${{ inputs.q_service }}
+        TF_VAR_tags: ${{ inputs.tags }}
         TF_VAR_name: ${{ inputs.name }}
         TF_VAR_description: ${{ inputs.description }}
         TF_VAR_environment_variables: ${{ inputs.environment_variables }}
