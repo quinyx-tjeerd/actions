@@ -27,7 +27,9 @@ runs:
       with:
         role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
         aws-region: ${{ inputs.aws_region }}
-
+    - name: Input roles
+      shell: bash
+      run: echo "roles-input=$(echo ${{ inputs.roles }})" >> $GITHUB_OUTPUT
     - name: Manage IAM Roles
       uses: quinyx-tjeerd/actions/terraform-automated@main
       env:
