@@ -29,47 +29,28 @@ locals {
     description = "Managed by Automated Terraform"
   }
   roles_processed = {
-  # merge(
-    // normal roles
-    # {
-    #   for role, config in local.roles :
-    #   role => merge(local.default_role, config, 
-    #     { 
-    #         role = join("_", compact([
-    #             config.assumeRole != "" ? config.assumeRole : "",
-    #             role
-    #         ]))
-    #         trust = try(config.trust, file("policies/${config.assumeRole}-role.json"), file("policies/default-role.json"))
-    #     }
-    #   )
-    #   if !contains(keys(config), "env_config")
-    # },
-    // roles with env overrides
-    # {
-      for data in flatten(concat([
-        for role, config in local.roles : [
-          # type(config.env_config) == "string" ? 
-          for env, env_config in try(local.env_preset[config.env_config], config.env_config, { "" = {}}) : 
-            merge(local.default_role, config, env_config, { 
-                role = join("_", compact([
-                    config.assumeRole != "" ? config.assumeRole : "",
-                    role,
-                    env
-                ]))
-                trust = try(config.trust, file("policies/${config.assumeRole}-role.json"), file("policies/default-role.json"))
-                policy = try(config.permissions, null)
-            })
-        ]
-        # if contains(keys(config), "env_config")
-      ])) : data.role => data
-    }
-  # )
+    for data in flatten(concat([
+      for role, config in local.roles : [
+        for env, env_config in try(local.env_preset[config.env_config], config.env_config, { "" = {}}) : 
+          merge(local.default_role, config, { 
+              role = join("_", compact([
+                  try(config.assumeRole,null),
+                  config.name,
+                  env
+              ]))
+              trust = try(config.trust, file("policies/${config.assumeRole}-role.json"), file("policies/default-role.json"))
+              policy = try(replace(config.permissions,"{{ env }}",env), null)
+              env = env
+          }, env_config)
+      ]
+    ])) : data.role => data
+  }
   custom_policies = { for role, config in local.roles_processed: 
     role => {
       role = aws_iam_role.role[role].id
-      policy = config.permissions 
+      policy = config.policy 
     }
-    if config.permissions != null
+    if config.policy != null
   }
   attach_policies_to_roles = merge(
     { 
