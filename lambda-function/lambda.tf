@@ -9,12 +9,7 @@ locals {
       ENVIRONMENT = var.environment
     }
   )
-  tags = merge(
-    var.tags,
-    {
-      SERVICE = local.service_name
-    }
-  )
+  tags = merge( var.tags, { Service = local.service_name })
   image = try(var.image, null)
   vpc = {
     subnet_ids          = var.vpc ? data.aws_subnets.lambda["subnet"].ids : null

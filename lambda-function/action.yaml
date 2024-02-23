@@ -24,6 +24,7 @@ inputs:
     description: name after service
   description:
     description: description of the function
+    default: ""
   environment_variables:
     description: environment variables
     default: "{}"
