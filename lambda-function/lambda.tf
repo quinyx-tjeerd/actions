@@ -28,7 +28,7 @@ data "aws_iam_role" "role" {
 }
 
 data "aws_security_group" "sg" {
-  for_each = local.vpc ? {secgroup = true } : {}
+  for_each = var.vpc ? {secgroup = true } : {}
   filter {
     name   = "tag:Name"
     values = ["main:lambda:lambda"]
@@ -36,7 +36,7 @@ data "aws_security_group" "sg" {
 }
 
 data "aws_subnets" "lambda" {
-  for_each = local.vpc ? {subnet = true } : {}
+  for_each = var.vpc ? {subnet = true } : {}
   filter {
     name   = "tag:Environment"
     values = ["lambda"]
