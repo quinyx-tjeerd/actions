@@ -19,6 +19,11 @@ variable "service" {
   type        = string
 }
 
+variable "aws_account_id" {
+  description = "Target AWS Account ID"
+  type        = string
+}
+
 variable "name" {
   description = "sub name, after service"
   type        = string
