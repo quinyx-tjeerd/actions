@@ -52,24 +52,21 @@ locals {
     }
     if config.policy != null
   }
-  attach_policies_to_roles = merge(
-    { 
-      for data in flatten(
-        [ for role, config in local.roles : concat(
-          [ for policy in config.policies : {
-            id     = format("%s/%s", role, policy)
-            role   = aws_iam_role.role[role].id
-            policy = format("arn:aws:iam::%s:policy/%s", var.aws_account_id, policy)
-          }],
-          [ for policy in config.aws_managed_policies : {
-            id     = format("%s/%s", role, basename(policy))
-            role   = aws_iam_role.role[role].id
-            policy = policy
-          }]
-        )]
-      ) : data.id => data
-    }
-  )
+  attach_policies_to_roles = merge({ for data in flatten(
+    [ for role, config in local.roles_processed : concat(
+      [ for policy in try(config.policies, {}) : {
+        id     = format("%s/%s", role, policy)
+        role   = aws_iam_role.role[role].id
+        policy = format("arn:aws:iam::%s:policy/%s", var.aws_account_id, policy)
+      }],
+      [ for policy in try(config.aws_managed_policies,{}) : {
+        id     = format("%s/%s", role, basename(policy))
+        role   = aws_iam_role.role[role].id
+        policy = policy
+      }]
+    )]
+  ) : data.id => data })
+  tags = merge(var.tags, { Service = var.service })
 }
 
 resource "aws_iam_role" "role" {
@@ -77,7 +74,7 @@ resource "aws_iam_role" "role" {
   name               = each.value.role
   description        = each.value.description
   assume_role_policy = each.value.trust
-  tags               = var.tags
+  tags               = local.tags
 }
 
 # This is the custom inline policies that we don't think we will be reusing.
