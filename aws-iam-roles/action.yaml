@@ -1,8 +1,8 @@
 name: "Build image"
 description: "Docker image build and publish"
 inputs:
-  roles:
-    description: Yaml containing the role definitions
+  roles_yaml:
+    description: Path to Yaml file containing the role definitions
   backend_iam_role:
     description: Name of the Terraform backend assumable IAM Role
     default: "github-actions_terraform-backend"
@@ -29,11 +29,11 @@ runs:
         aws-region: ${{ inputs.aws_region }}
     - name: Input roles
       shell: bash
-      run: echo roles-input ${{ inputs.roles }}
+      run: echo roles-input ${{ inputs.roles_yaml }}
     - name: Manage IAM Roles
       uses: quinyx-tjeerd/actions/terraform-automated@main
       env:
-        TF_VAR_roles: ${{ inputs.roles }}
+        TF_VAR_roles_yaml: ${{ inputs.roles_yaml }}
         TF_VAR_tags: ${{ inputs.tags }}
 
       with:

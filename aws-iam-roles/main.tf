@@ -23,7 +23,7 @@ locals {
       prod    = {}
     }
   }
-  yaml-roles = yamldecode(var.roles)
+  yaml-roles = yamldecode(file(var.roles_yaml))
   roles = try(local.yaml-roles.roles,{})
   default_role = {
     description = "Managed by Automated Terraform"
