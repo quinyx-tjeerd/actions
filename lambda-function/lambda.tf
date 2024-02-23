@@ -15,6 +15,12 @@ locals {
     subnet_ids          = var.vpc ? data.aws_subnets.lambda["subnet"].ids : null
     security_group_ids  = var.vpc ? [data.aws_security_group.sg["secgroup"].id] : null
   }
+  vpc_ids = {
+    eu-central-1 = "vpc-d59558bc"
+    eu-west-1 = "vpc-c6222ca3"
+    us-east-1 = "vpc-0173a74dd4f32362e"
+    us-west-2 = "vpc-0c52fd38ef076f287"
+  }
 }
 
 data "aws_iam_role" "role" {
@@ -38,12 +44,8 @@ data "aws_subnets" "lambda" {
 
   filter {
     name   = "vpc-id"
-    values = [module.ips-and-vpcs.vpc_ids[var.region]]
+    values = [local.vpc_ids[var.region]]
   }
-}
-
-module "ips-and-vpcs" {
-  source = "../ips-and-vpcs"
 }
 
 module "lambda" {
