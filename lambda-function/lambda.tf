@@ -11,7 +11,7 @@ locals {
       COMPONENT = try(var.component, null)
     }
   )
-  tags = merge( var.tags, { Service = local.service_name })
+  tags = merge( var.tags, { Environment = var.environment, Role =	"Lambda Function", Service = local.service_name, "lambda:createdBy" = "Terraform Automated Github Action" })
   image = try(var.image, null)
   vpc = {
     subnet_ids          = var.vpc ? data.aws_subnets.lambda["subnet"].ids : null
