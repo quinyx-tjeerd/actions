@@ -24,8 +24,8 @@ variable "aws_account_id" {
   type        = string
 }
 
-variable "name" {
-  description = "sub name, after service"
+variable "component" {
+  description = "Component of service, like a sub division"
   type        = string
   default     = ""
 }
@@ -49,6 +49,18 @@ variable "environment_variables" {
 variable "architectures" {
   description = "Instruction set architecture for your Lambda function. Valid values are ['x86_64'] and ['arm64']."
   type        = list(string)
+}
+
+variable "memory_size" {
+  description = "Memory size in mb (min 128, max 10240)"
+  type        = number
+  default     = 128
+}
+
+variable "timeout" {
+  description = "Timeout in seconds"
+  type        = number
+  default     = 3
 }
 
 variable "vpc" {

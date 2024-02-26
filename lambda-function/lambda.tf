@@ -1,5 +1,5 @@
 locals {
-  service_name  = join("-", compact([var.service, var.name]))
+  service_name  = join("-", compact([var.service, var.component]))
   function_name = join("-", [local.service_name, var.environment])
   role_name     = coalesce(var.iam_role_name, join("_", ["lambda", local.service_name, var.environment]))
 
@@ -7,6 +7,8 @@ locals {
     var.environment_variables,
     {
       ENVIRONMENT = var.environment
+      SERVICE = var.service
+      COMPONENT = try(var.component, null)
     }
   )
   tags = merge( var.tags, { Service = local.service_name })
@@ -66,6 +68,8 @@ module "lambda" {
 
   image_uri             = local.image
   environment_variables = local.env-vars
+  memory_size           = var.memory_size
+  timeout               = var.timeout
 
   vpc_subnet_ids         = local.vpc.subnet_ids
   vpc_security_group_ids = local.vpc.security_group_ids

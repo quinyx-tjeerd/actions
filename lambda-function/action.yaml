@@ -20,8 +20,8 @@ inputs:
     description: Tags to add to the function
   environment:
     description: Environment
-  name:
-    description: name after service
+  component:
+    description: Component of service, like a sub division
   description:
     description: description of the function
     default: ""
@@ -31,6 +31,12 @@ inputs:
   architectures:
     description: Instruction set architecture for your Lambda function. Valid values are ['x86_64'] and ['arm64'].
     default: '["arm64"]'
+  memory_size:
+    description: Memory size in mb (min 128, max 10240)
+    default: "128"
+  timeout:
+    description: Timeout in seconds
+    default: "3"
   vpc:
     description: whether this function should live within the vpc
     default: "false"
@@ -51,10 +57,12 @@ runs:
         TF_VAR_environment: ${{ inputs.environment }}
         TF_VAR_service: ${{ inputs.q_service }}
         TF_VAR_tags: ${{ inputs.tags }}
-        TF_VAR_name: ${{ inputs.name }}
+        TF_VAR_component: ${{ inputs.component }}
         TF_VAR_description: ${{ inputs.description }}
         TF_VAR_environment_variables: ${{ inputs.environment_variables }}
         TF_VAR_architectures: ${{ inputs.architectures }}
+        TF_VAR_memory_size: ${{ inputs.memory_size }}
+        TF_VAR_timeout: ${{ inputs.timeout }}
         TF_VAR_vpc: ${{ inputs.vpc == 'true' }}
         TF_VAR_image: ${{ inputs.function_image }}
       with:
