@@ -13,6 +13,12 @@ inputs:
     description: AWS Service, like ECR, Lambda etc (state bucket /automated/$aws_service)
   q_service:
     description: Quinyx Service, like qwfmbackend, osrm etc (state bucket /automated/$aws_service/$q_service)
+  q_component:
+    description: Quinyx Service subdivision, will result in separate state (state bucket /automated/$aws_service/$q_service-$q_component)
+    default: ""
+  q_environment:
+    description: Quinyx Environment, will result in separate state (state bucket /automated/$aws_service/$q_service-$q_component/$q_environment)
+    default: ""
   working-directory:
     description: Specifies the working directory where the Terraform files are
 runs:
@@ -33,7 +39,7 @@ runs:
           -backend-config='skip_credentials_validation=true' \
           -backend-config='region=${{ inputs.aws_region }}' \
           -backend-config='bucket=quinyx-terraform-state-${{ inputs.aws_region }}' \
-          -backend-config='key=automated/${{ inputs.aws_service }}/${{ inputs.q_service }}/terraform.tfstate' \
+          -backend-config='key=${{ format('automated/{0}/{1}{2}{3}/terraform.tfstate', inputs.aws_service, inputs.q_service, (inputs.q_component != "" && format('-{0}', inputs.q_component) || ''), (inputs.q_environment != "" && format('/{0}', inputs.q_environment) || '') ) }}' \
           -backend-config='dynamodb_table=quinyx-terraform-locks-${{ inputs.aws_region }}' \
           -backend-config='role_arn=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.backend_iam_role }}'
       working-directory: ${{ inputs.working-directory }}

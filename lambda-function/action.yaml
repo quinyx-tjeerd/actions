@@ -22,6 +22,7 @@ inputs:
     description: Environment
   component:
     description: Component of service, like a sub division
+    default: ""
   description:
     description: description of the function
     default: ""
@@ -70,5 +71,7 @@ runs:
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
         aws_service: Lambda
-        q_service: ${{ inputs.q_service}}
+        q_service: ${{ inputs.q_service }}
+        q_component: ${{ inputs.component }}
+        q_environment: ${{ inputs.component }}
         working-directory: ${{ github.action_path }}
