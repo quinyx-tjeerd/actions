@@ -39,7 +39,7 @@ runs:
           -backend-config='skip_credentials_validation=true' \
           -backend-config='region=${{ inputs.aws_region }}' \
           -backend-config='bucket=quinyx-terraform-state-${{ inputs.aws_region }}' \
-          -backend-config='key=${{ format('automated/{0}/{1}{2}{3}/terraform.tfstate', inputs.aws_service, inputs.q_service, (inputs.q_component != "" && format('-{0}', inputs.q_component) || ''), (inputs.q_environment != "" && format('/{0}', inputs.q_environment) || '') ) }}' \
+          -backend-config='key=${{ format('automated/{0}/{1}{2}{3}/terraform.tfstate', inputs.aws_service, inputs.q_service, (inputs.q_component != '' && format('-{0}', inputs.q_component) || ''), (inputs.q_environment != '' && format('/{0}', inputs.q_environment) || '') ) }}' \
           -backend-config='dynamodb_table=quinyx-terraform-locks-${{ inputs.aws_region }}' \
           -backend-config='role_arn=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.backend_iam_role }}'
       working-directory: ${{ inputs.working-directory }}
