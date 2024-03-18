@@ -1,0 +1,77 @@
+name: "Manage S3 Bucket"
+description: "Create and manage a bucket using terraform"
+inputs:
+  backend_iam_role:
+    description: Name of the Terraform backend assumable IAM Role
+    default: "github-actions_terraform-backend"
+  github_iam_role:
+    description: Name of the IAM Role for managing the Lambda Function, also needs to assume the terraform role
+    default: "github-actions_s3"
+  aws_account_id:
+    description: AWS Account ID
+  aws_region:
+    description: Target AWS Region
+    default: "eu-central-1"
+  q_service:
+    description: Quinyx Service, like 'qwfmbackend' or 'security'
+  tags:
+    description: Tags to add to the function
+  environment:
+    description: Environment
+  component:
+    description: Component of service, like a sub division
+    default: ""
+  description:
+    description: description of the function
+    default: ""
+  versioning:
+    description: Enable object versioning
+    default: "true"
+  kms_key_arn:
+    description: Use KMS encryption with specified key
+    default: ""
+  lifecycle_rules:
+    description: Lifecycle rules
+    default: "{}"
+  allowed_users:
+    description: List of IAM users
+    default: "[]"
+  allowed_groups:
+    description: List of IAM groups
+    default: "[]"
+  allowed_roles:
+    description: List of IAM roles
+    default: "[]"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Manage S3 bucket
+      uses: quinyx-tjeerd/actions/terraform-automated@main
+      env:
+        TF_VAR_region: ${{ inputs.aws_region }}
+        TF_VAR_environment: ${{ inputs.environment }}
+        TF_VAR_service: ${{ inputs.q_service }}
+        TF_VAR_tags: ${{ inputs.tags }}
+        TF_VAR_component: ${{ inputs.component }}
+        TF_VAR_description: ${{ inputs.description }}
+        TF_VAR_versioning: ${{ inputs.versioning == 'true' }}
+        TF_VAR_lifecycle_rules: ${{ inputs.lifecycle_rules }}
+        TF_VAR_allowed_users: ${{ inputs.allowed_users }}
+        TF_VAR_allowed_groups: ${{ inputs.allowed_groups }}
+        TF_VAR_allowed_roles: ${{ inputs.allowed_roles }}
+      with:
+        backend_iam_role: ${{ inputs.backend_iam_role }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
+        aws_service: S3
+        q_service: ${{ inputs.q_service }}
+        q_component: ${{ inputs.component }}
+        q_environment: ${{ inputs.component }}
+        working-directory: ${{ github.action_path }}
