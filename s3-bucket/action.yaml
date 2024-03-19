@@ -51,10 +51,10 @@ outputs:
     value: ${{ steps.terraform.outputs.json }}
   bucket_arn:
     description: "S3 Bucket ARN"
-    value: ${{ steps.terraform.outputs.bucket_arn }}
+    value: ${{ fromJSON(steps.terraform.outputs.json).bucket_arn }}
   bucket_id:
     description: "S3 Bucket ID"
-    value: ${{ steps.terraform.outputs.bucket_id }}
+    value: ${{ fromJSON(steps.terraform.outputs.json).bucket_id }}
 runs:
   using: "composite"
   steps:
@@ -93,9 +93,6 @@ runs:
 
     - shell: bash
       run: |
-        echo "${{ steps.terraform.outputs.json }}" | jq -c 'to_entries | .[] | "\(.key)=\(.value)"' | while read var; do
-            echo "$var" >> "$GITHUB_OUTPUT"
-        done
         echo JSON ${{ steps.terraform.outputs.json }}
-        echo ARN ${{ steps.terraform.outputs.bucket_arn }}
-        echo ID ${{ steps.terraform.outputs.bucket_id }}
+        echo ARN ${{ fromJSON(steps.terraform.outputs.json).bucket_arn }}
+        echo ID ${{ fromJSON(steps.terraform.outputs.json).bucket_id }}
