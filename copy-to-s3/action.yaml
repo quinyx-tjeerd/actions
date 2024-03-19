@@ -75,7 +75,6 @@ runs:
         github_iam_role: ${{ inputs.github_iam_s3_bucket_role }}
         aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
-    - uses: actions/checkout@v4
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -85,7 +84,4 @@ runs:
     - name: Upload files to S3 bucket
       id: sync
       shell: bash
-      run: |
-        set -eux
-        echo sync "${{ inputs.source_dir }}" "s3://${{ steps.bucket.outputs.bucket_id }}/${{ inputs.destination_dir }}"
-        aws s3 sync "${{ inputs.source_dir }}" "s3://${{ steps.bucket.outputs.bucket_id }}/${{ inputs.destination_dir }}"
+      run: aws s3 sync "${{ inputs.source_dir }}" "s3://${{ steps.bucket.outputs.bucket_id }}/${{ inputs.destination_dir }}"
