@@ -51,10 +51,10 @@ outputs:
     value: ${{ steps.terraform.outputs.json }}
   bucket_arn:
     description: "S3 Bucket ARN"
-    value: ${{ fromJSON(steps.terraform.outputs.json).bucket_arn }}
+    value: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).bucket_arn }}
   bucket_id:
     description: "S3 Bucket ID"
-    value: ${{ fromJSON(steps.terraform.outputs.json).bucket_id }}
+    value: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).bucket_id }}
 runs:
   using: "composite"
   steps:
