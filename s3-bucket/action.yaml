@@ -93,6 +93,9 @@ runs:
 
     - shell: bash
       run: |
+        echo "${{ steps.terraform.outputs.json }}" | jq -c 'to_entries | .[] | "\(.key)=\(.value)"' | while read var; do
+            echo "$var" >> "$GITHUB_OUTPUT"
+        done
         echo JSON ${{ steps.terraform.outputs.json }}
         echo ARN ${{ steps.terraform.outputs.bucket_arn }}
         echo ID ${{ steps.terraform.outputs.bucket_id }}
