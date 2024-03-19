@@ -34,8 +34,8 @@ inputs:
     description: Use KMS encryption with specified key
     default: ""
   lifecycle_rules:
-    description: Lifecycle rules
-    default: "{}"
+    description: Lifecycle rules, list of objects [ {rule} ]
+    default: "[]"
   allowed_users:
     description: List of IAM users
     default: "[]"

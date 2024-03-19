@@ -11,7 +11,7 @@ locals {
 
   allowed-users  = concat([], var.allowed_users)
   allowed-groups = concat(["devops-admins"], var.allowed_groups)
-  allowed-roles  = concat([format("k8s_terraform_%s", var.environment)], var.allowed_roles)
+  allowed-roles  = concat(["github-actions_s3-bucket"], var.allowed_roles)
 
   processed-allowed-entities = distinct(flatten(concat([
       var.aws_account_id
