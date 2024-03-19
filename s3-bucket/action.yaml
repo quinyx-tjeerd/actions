@@ -90,7 +90,5 @@ runs:
 
     - shell: bash
       run: |
-        echo action 
-        echo ${{ steps.terraform.outputs.bucket_arn }}
-        echo ${{ steps.terraform.outputs.json }}
-        echo ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json) }}
+        echo ARN ${{ steps.terraform.outputs.bucket_arn }}
+        echo ID ${{ steps.terraform.outputs.bucket_id }}

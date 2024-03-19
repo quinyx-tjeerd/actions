@@ -60,9 +60,9 @@ runs:
       shell: bash
       run: |
         set -eux
-        DATA=$(terraform output -json | jq -c 'to_entries | [.[] | select(.value.sensitive==false) | {key, value: .value.value}] | from_entries')
-        echo "json=$DATA" >> "$GITHUB_OUTPUT"
-        echo "$DATA" | jq -c 'to_entries' | while read i; do
-            echo "$i.key=$i.value"
+        DATA=$(terraform output -json | jq -c 'to_entries | .[] | select(.value.sensitive==false) | "\(.key)=\"\(.value.value)\""')
+        echo "$DATA" | while read var; do
+            echo "$var" >> "$GITHUB_OUTPUT"
         done
+        echo $DATA
       working-directory: ${{ inputs.working-directory }}
