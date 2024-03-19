@@ -88,5 +88,9 @@ runs:
         q_environment: ${{ inputs.component }}
         working-directory: ${{ github.action_path }}
 
-    - run: echo action ${{ steps.terraform.outputs.json }}
-      shell: bash
+    - shell: bash
+      run: |
+        echo action 
+        echo ${{ steps.terraform.outputs.bucket_arn }}
+        echo ${{ steps.terraform.outputs.json }}
+        echo ${{ fromJSON(steps.terraform.outputs.json) }}
