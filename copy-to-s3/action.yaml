@@ -60,7 +60,6 @@ runs:
       name: Manage S3 bucket
       uses: quinyx-tjeerd/actions/s3-bucket@main
       with:
-        region: ${{ inputs.aws_region }}
         environment: ${{ inputs.environment }}
         q_service: ${{ inputs.q_service }}
         tags: ${{ inputs.tags }}
@@ -86,4 +85,7 @@ runs:
     - name: Upload files to S3 bucket
       id: sync
       shell: bash
-      run: aws s3 sync {{ inputs.source_dir }} s3://{{ steps.bucket.outputs.bucket_id }}/{{ inputs.destination_dir }}
+      run: |
+        set -eux
+        echo sync "{{ inputs.source_dir }}" "s3://{{ steps.bucket.outputs.bucket_id }}/{{ inputs.destination_dir }}"
+        aws s3 sync "{{ inputs.source_dir }}" "s3://{{ steps.bucket.outputs.bucket_id }}/{{ inputs.destination_dir }}"
