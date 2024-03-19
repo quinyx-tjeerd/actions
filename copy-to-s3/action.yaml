@@ -5,6 +5,8 @@ inputs:
     description: Name of the Terraform backend assumable IAM Role
     default: "github-actions_terraform-backend"
   github_iam_role:
+    description: Name of the IAM Role for syncing files to the S3 Bucket, needs write access
+  github_iam_s3_bucket_role:
     description: Name of the IAM Role for managing the S3 Bucket, also needs to assume the terraform role
     default: "github-actions_s3-bucket"
   aws_account_id:
@@ -45,19 +47,35 @@ inputs:
   allowed_roles:
     description: List of IAM roles
     default: "[]"
-outputs:
-  json:
-    description: "Terraform output as JSON"
-    value: ${{ steps.terraform.outputs.json }}
-  bucket_arn:
-    description: "S3 Bucket ARN"
-    value: ${{ fromJSON(steps.terraform.outputs.json).bucket_arn }}
-  bucket_id:
-    description: "S3 Bucket ID"
-    value: ${{ fromJSON(steps.terraform.outputs.json).bucket_id }}
+  source_dir:
+    description: Source directory to sync to S3
+    default: "dist/"
+  destination_dir:
+    description: Destination directory to sync to in S3
+    default: ""
 runs:
   using: "composite"
   steps:
+    - id: bucket
+      name: Manage S3 bucket
+      uses: quinyx-tjeerd/actions/s3-bucket@main
+      with:
+        region: ${{ inputs.aws_region }}
+        environment: ${{ inputs.environment }}
+        q_service: ${{ inputs.q_service }}
+        tags: ${{ inputs.tags }}
+        component: ${{ inputs.component }}
+        description: ${{ inputs.description }}
+        custom_name: ${{ inputs.custom_name }}
+        versioning: ${{ inputs.versioning }}
+        lifecycle_rules: ${{ inputs.lifecycle_rules }}
+        allowed_users: ${{ inputs.allowed_users }}
+        allowed_groups: ${{ inputs.allowed_groups }}
+        allowed_roles: ${{ inputs.allowed_roles }}
+        backend_iam_role: ${{ inputs.backend_iam_role }}
+        github_iam_role: ${{ inputs.github_iam_s3_bucket_role }}
+        aws_account_id: ${{ inputs.aws_account_id }}
+        aws_region: ${{ inputs.aws_region }}
     - uses: actions/checkout@v4
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -65,27 +83,7 @@ runs:
         role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
         aws-region: ${{ inputs.aws_region }}
 
-    - id: terraform
-      name: Manage S3 bucket
-      uses: quinyx-tjeerd/actions/terraform-automated@main
-      env:
-        TF_VAR_region: ${{ inputs.aws_region }}
-        TF_VAR_environment: ${{ inputs.environment }}
-        TF_VAR_service: ${{ inputs.q_service }}
-        TF_VAR_tags: ${{ inputs.tags }}
-        TF_VAR_component: ${{ inputs.component }}
-        TF_VAR_description: ${{ inputs.description }}
-        TF_VAR_custom_name: ${{ inputs.custom_name }}
-        TF_VAR_versioning: ${{ inputs.versioning == 'true' }}
-        TF_VAR_lifecycle_rules: ${{ inputs.lifecycle_rules }}
-        TF_VAR_allowed_users: ${{ inputs.allowed_users }}
-        TF_VAR_allowed_groups: ${{ inputs.allowed_groups }}
-        TF_VAR_allowed_roles: ${{ inputs.allowed_roles }}
-      with:
-        backend_iam_role: ${{ inputs.backend_iam_role }}
-        aws_account_id: ${{ inputs.aws_account_id }}
-        aws_region: ${{ inputs.aws_region }}
-        aws_service: S3
-        q_service: ${{ inputs.q_service }}
-        q_component: ${{ inputs.component }}
-        working-directory: ${{ github.action_path }}
+    - name: Upload files to S3 bucket
+      id: sync
+      shell: bash
+      run: aws s3 sync {{ inputs.source_dir }} s3://{{ steps.bucket.outputs.bucket_id }}/{{ inputs.destination_dir }}
