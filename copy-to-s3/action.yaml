@@ -87,5 +87,5 @@ runs:
       shell: bash
       run: |
         set -eux
-        echo sync "{{ inputs.source_dir }}" "s3://{{ steps.bucket.outputs.bucket_id }}/{{ inputs.destination_dir }}"
-        aws s3 sync "{{ inputs.source_dir }}" "s3://{{ steps.bucket.outputs.bucket_id }}/{{ inputs.destination_dir }}"
+        echo sync "${{ inputs.source_dir }}" "s3://${{ steps.bucket.outputs.bucket_id }}/${{ inputs.destination_dir }}"
+        aws s3 sync "${{ inputs.source_dir }}" "s3://${{ steps.bucket.outputs.bucket_id }}/${{ inputs.destination_dir }}"
