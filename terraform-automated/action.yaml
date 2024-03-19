@@ -64,5 +64,6 @@ runs:
         echo "$DATA" | while read var; do
             echo "$var" >> "$GITHUB_OUTPUT"
         done
-        echo $DATA
+        echo "JSON=$DATA" >> $GITHUB_OUTPUT
+        echo "Teraform=Applied" >> $GITHUB_OUTPUT
       working-directory: ${{ inputs.working-directory }}
