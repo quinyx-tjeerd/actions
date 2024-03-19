@@ -5,8 +5,8 @@ inputs:
     description: Name of the Terraform backend assumable IAM Role
     default: "github-actions_terraform-backend"
   github_iam_role:
-    description: Name of the IAM Role for managing the Lambda Function, also needs to assume the terraform role
-    default: "github-actions_s3"
+    description: Name of the IAM Role for managing the S3 Bucket, also needs to assume the terraform role
+    default: "github-actions_s3-bucket"
   aws_account_id:
     description: AWS Account ID
   aws_region:
@@ -15,14 +15,17 @@ inputs:
   q_service:
     description: Quinyx Service, like 'qwfmbackend' or 'security'
   tags:
-    description: Tags to add to the function
+    description: Tags to add to the bucket
   environment:
     description: Environment
   component:
     description: Component of service, like a sub division
     default: ""
   description:
-    description: description of the function
+    description: description of the bucket
+    default: ""
+  custom_name:
+    description: custom name for the bucket
     default: ""
   versioning:
     description: Enable object versioning
@@ -42,6 +45,13 @@ inputs:
   allowed_roles:
     description: List of IAM roles
     default: "[]"
+outputs:
+  bucket_arn:
+    description: "S3 Bucket ARN"
+    value: ${{ steps.terraform.outputs.bucket_arn }}
+  bucket_id:
+    description: "S3 Bucket ID"
+    value: ${{ steps.terraform.outputs.bucket_id }}
 runs:
   using: "composite"
   steps:
@@ -52,7 +62,8 @@ runs:
         role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
         aws-region: ${{ inputs.aws_region }}
 
-    - name: Manage S3 bucket
+    - id: terraform
+      name: Manage S3 bucket
       uses: quinyx-tjeerd/actions/terraform-automated@main
       env:
         TF_VAR_region: ${{ inputs.aws_region }}
@@ -61,6 +72,7 @@ runs:
         TF_VAR_tags: ${{ inputs.tags }}
         TF_VAR_component: ${{ inputs.component }}
         TF_VAR_description: ${{ inputs.description }}
+        TF_VAR_custom_name: ${{ inputs.custom_name }}
         TF_VAR_versioning: ${{ inputs.versioning == 'true' }}
         TF_VAR_lifecycle_rules: ${{ inputs.lifecycle_rules }}
         TF_VAR_allowed_users: ${{ inputs.allowed_users }}
@@ -75,3 +87,6 @@ runs:
         q_component: ${{ inputs.component }}
         q_environment: ${{ inputs.component }}
         working-directory: ${{ github.action_path }}
+
+    - run: echo action ${{ steps.terraform.outputs.json }}
+      shell: bash
