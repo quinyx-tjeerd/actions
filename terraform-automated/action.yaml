@@ -54,3 +54,11 @@ runs:
           -var 'service=${{ inputs.q_service }}' \
           -auto-approve
       working-directory: ${{ inputs.working-directory }}
+
+    - name: TF Output
+      id: tf-output
+      shell: bash
+      run: |
+        set -eux
+        echo "json=$(terraform output -json)" >> "$GITHUB_OUTPUT"
+      working-directory: ${{ inputs.working-directory }}
