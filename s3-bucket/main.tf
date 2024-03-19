@@ -1,7 +1,7 @@
 locals {
   service_name  = join("-", compact([var.service, var.component]))
   bucket_name = coalesce(var.custom_name, join("-", [local.service_name, var.environment, var.region]))
-  encryption = var.kms_key_arn ? {
+  encryption = var.kms_key_arn != null ? {
     kms_master_key_id = var.kms_key_arn
     sse_algorithm     = "aws:kms"
   } : {
