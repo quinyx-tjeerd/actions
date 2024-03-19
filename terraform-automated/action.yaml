@@ -21,6 +21,10 @@ inputs:
     default: ""
   working-directory:
     description: Specifies the working directory where the Terraform files are
+outputs:
+  json:
+    description: "JSON"
+    value: ${{ steps.tf-output.outputs.json }}
 runs:
   using: "composite"
   steps:

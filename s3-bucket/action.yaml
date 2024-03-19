@@ -46,6 +46,9 @@ inputs:
     description: List of IAM roles
     default: "[]"
 outputs:
+  json:
+    description: "JSON"
+    value: ${{ steps.terraform.outputs.json }}
   bucket_arn:
     description: "S3 Bucket ARN"
     value: ${{ steps.terraform.outputs.bucket_arn }}
@@ -90,5 +93,6 @@ runs:
 
     - shell: bash
       run: |
+        echo JSON ${{ steps.terraform.outputs.json }}
         echo ARN ${{ steps.terraform.outputs.bucket_arn }}
         echo ID ${{ steps.terraform.outputs.bucket_id }}
