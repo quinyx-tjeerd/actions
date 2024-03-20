@@ -1,17 +1,15 @@
 name: "Manage S3 Bucket"
 description: "Create and manage a bucket using terraform"
 inputs:
-  backend_iam_role:
-    description: Name of the Terraform backend assumable IAM Role
-    default: "github-actions_terraform-backend"
-  github_iam_role:
-    description: Name of the IAM Role for managing the S3 Bucket, also needs to assume the terraform role
-    default: "github-actions_s3-bucket"
   aws_account_id:
     description: AWS Account ID
+    default: "488021763009"
   aws_region:
     description: Target AWS Region
     default: "eu-central-1"
+  github_iam_role_arn:
+    description: Name of the IAM Role for managing the S3 Bucket, also needs to assume the terraform role
+    default: "arn:aws:iam::488021763009:role/github-actions_s3-bucket"
   q_service:
     description: Quinyx Service, like 'qwfmbackend' or 'security'
   tags:
@@ -61,16 +59,17 @@ runs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
+        role-to-assume: ${{ inputs.github_iam_role_arn }}
         aws-region: ${{ inputs.aws_region }}
 
     - id: terraform
       name: Manage S3 bucket
       uses: quinyx-tjeerd/actions/terraform-automated@main
       env:
+        TF_VAR_aws_account_id: ${{ inputs.aws_account_id }}
         TF_VAR_region: ${{ inputs.aws_region }}
-        TF_VAR_environment: ${{ inputs.environment }}
         TF_VAR_service: ${{ inputs.q_service }}
+        TF_VAR_environment: ${{ inputs.environment }}
         TF_VAR_tags: ${{ inputs.tags }}
         TF_VAR_component: ${{ inputs.component }}
         TF_VAR_description: ${{ inputs.description }}
@@ -81,10 +80,7 @@ runs:
         TF_VAR_allowed_groups: ${{ inputs.allowed_groups }}
         TF_VAR_allowed_roles: ${{ inputs.allowed_roles }}
       with:
-        backend_iam_role: ${{ inputs.backend_iam_role }}
-        aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
         aws_service: S3
-        q_service: ${{ inputs.q_service }}
-        q_component: ${{ inputs.component }}
+        tf_state_prefix: ${{ format( "{0}{1}", inputs.q_service, (inputs.component != '' && format('/{0}', inputs.component) || '')) }}
         working-directory: ${{ github.action_path }}

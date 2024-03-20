@@ -31,7 +31,7 @@ variable "component" {
 }
 
 variable "description" {
-  description = "description of the lambda"
+  description = "description of the S3 bucket"
   type        = string
   default     = null
 }
