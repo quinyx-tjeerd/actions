@@ -1,13 +1,11 @@
 name: "Copy to S3 Bucket"
 description: "Sync a local directory to a bucket"
 inputs:
-  github_iam_role:
-    description: Name of the IAM Role for syncing files to the S3 Bucket, needs write access
-  aws_account_id:
-    description: AWS Account ID
   aws_region:
     description: Target AWS Region
     default: "eu-central-1"
+  github_iam_role_arn:
+    description: Name of the IAM Role for syncing files to the S3 Bucket, needs write access
   bucket_id:
     description: Bucket id
   source_dir:
@@ -22,7 +20,7 @@ runs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
+        role-to-assume: ${{ inputs.github_iam_role_arn }}
         aws-region: ${{ inputs.aws_region }}
 
     - name: Upload files to S3 bucket
