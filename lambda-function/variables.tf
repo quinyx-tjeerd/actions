@@ -19,11 +19,6 @@ variable "service" {
   type        = string
 }
 
-variable "aws_account_id" {
-  description = "Target AWS Account ID"
-  type        = string
-}
-
 variable "component" {
   description = "Component of service, like a sub division"
   type        = string

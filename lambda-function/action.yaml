@@ -1,17 +1,12 @@
 name: "Build image"
 description: "Docker image build and publish"
 inputs:
-  backend_iam_role:
-    description: Name of the Terraform backend assumable IAM Role
-    default: "github-actions_terraform-backend"
-  github_iam_role:
-    description: Name of the IAM Role for managing the Lambda Function, also needs to assume the terraform role
-    default: "github-actions_lambda-function"
-  aws_account_id:
-    description: AWS Account ID
   aws_region:
     description: Target AWS Region
     default: "eu-central-1"
+  github_iam_role:
+    description: Name of the IAM Role for managing the Lambda Function, also needs to assume the terraform role
+    default: "arn:aws:iam::488021763009:role/github-actions_lambda-function"
   q_service:
     description: Quinyx Service, like 'qwfmbackend' or 'security'
   function_image:
@@ -48,7 +43,7 @@ runs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.github_iam_role }}
+        role-to-assume: ${{ inputs.github_iam_role_arn }}
         aws-region: ${{ inputs.aws_region }}
 
     - name: Manage Lambda Function
@@ -67,11 +62,7 @@ runs:
         TF_VAR_vpc: ${{ inputs.vpc == 'true' }}
         TF_VAR_image: ${{ inputs.function_image }}
       with:
-        backend_iam_role: ${{ inputs.backend_iam_role }}
-        aws_account_id: ${{ inputs.aws_account_id }}
         aws_region: ${{ inputs.aws_region }}
         aws_service: Lambda
-        q_service: ${{ inputs.q_service }}
-        q_component: ${{ inputs.component }}
-        q_environment: ${{ inputs.component }}
+        tf_state_prefix: ${{ format( "{0}{1}{2}", inputs.q_service, (inputs.component != '' && format('/{0}', inputs.component) || ''), inputs.environment) }}
         working-directory: ${{ github.action_path }}
