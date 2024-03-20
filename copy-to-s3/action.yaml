@@ -1,52 +1,15 @@
-name: "Manage S3 Bucket"
-description: "Create and manage a bucket using terraform"
+name: "Copy to S3 Bucket"
+description: "Sync a local directory to a bucket"
 inputs:
-  backend_iam_role:
-    description: Name of the Terraform backend assumable IAM Role
-    default: "github-actions_terraform-backend"
   github_iam_role:
     description: Name of the IAM Role for syncing files to the S3 Bucket, needs write access
-  github_iam_s3_bucket_role:
-    description: Name of the IAM Role for managing the S3 Bucket, also needs to assume the terraform role
-    default: "github-actions_s3-bucket"
   aws_account_id:
     description: AWS Account ID
   aws_region:
     description: Target AWS Region
     default: "eu-central-1"
-  q_service:
-    description: Quinyx Service, like 'qwfmbackend' or 'security'
-  tags:
-    description: Tags to add to the bucket
-  environment:
-    description: Environment
-  component:
-    description: Component of service, like a sub division
-    default: ""
-  description:
-    description: description of the bucket
-    default: ""
-  custom_name:
-    description: custom name for the bucket
-    default: ""
-  versioning:
-    description: Enable object versioning
-    default: "true"
-  kms_key_arn:
-    description: Use KMS encryption with specified key
-    default: ""
-  lifecycle_rules:
-    description: Lifecycle rules, list of objects [ {rule} ]
-    default: "[]"
-  allowed_users:
-    description: List of IAM users
-    default: "[]"
-  allowed_groups:
-    description: List of IAM groups
-    default: "[]"
-  allowed_roles:
-    description: List of IAM roles
-    default: "[]"
+  bucket_id:
+    description: Bucket id
   source_dir:
     description: Source directory to sync to S3
     default: "dist/"
@@ -56,25 +19,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - id: bucket
-      name: Manage S3 bucket
-      uses: quinyx-tjeerd/actions/s3-bucket@main
-      with:
-        environment: ${{ inputs.environment }}
-        q_service: ${{ inputs.q_service }}
-        tags: ${{ inputs.tags }}
-        component: ${{ inputs.component }}
-        description: ${{ inputs.description }}
-        custom_name: ${{ inputs.custom_name }}
-        versioning: ${{ inputs.versioning }}
-        lifecycle_rules: ${{ inputs.lifecycle_rules }}
-        allowed_users: ${{ inputs.allowed_users }}
-        allowed_groups: ${{ inputs.allowed_groups }}
-        allowed_roles: ${{ inputs.allowed_roles }}
-        backend_iam_role: ${{ inputs.backend_iam_role }}
-        github_iam_role: ${{ inputs.github_iam_s3_bucket_role }}
-        aws_account_id: ${{ inputs.aws_account_id }}
-        aws_region: ${{ inputs.aws_region }}
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -84,4 +28,4 @@ runs:
     - name: Upload files to S3 bucket
       id: sync
       shell: bash
-      run: aws s3 sync "${{ inputs.source_dir }}" "s3://${{ steps.bucket.outputs.bucket_id }}/${{ inputs.destination_dir }}"
+      run: aws s3 sync "${{ inputs.source_dir }}" "s3://${{ inputs.bucket_id }}/${{ inputs.destination_dir }}"
