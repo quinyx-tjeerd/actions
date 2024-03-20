@@ -10,9 +10,9 @@ locals {
   tags = merge( var.tags, { Environment = var.environment, Role =	"S3 Bucket", Service = local.service_name, ManagedBy = "Terraform Automated Github Action" })
 
   restrict_access = length(concat(var.allowed_users, var.allowed_groups, var.allowed_roles)) > 0
-  allowed-users  = concat([], var.allowed_users)
-  allowed-groups = concat(["devops-admins"], var.allowed_groups)
-  allowed-roles  = concat(["github-actions_s3-bucket"], var.allowed_roles)
+  allowed-users  = local.restrict_access ? concat([], var.allowed_users) : []
+  allowed-groups = local.restrict_access ? concat(["devops-admins"], var.allowed_groups) : []
+  allowed-roles  = local.restrict_access ? concat(["github-actions_s3-bucket"], var.allowed_roles) : []
   processed-allowed-entities = local.restrict_access ? distinct(flatten(concat([
       var.aws_account_id
     ], [
@@ -33,17 +33,17 @@ locals {
 ## Data Gathering
 #################
 data "aws_iam_user" "user" {
-  for_each  = local.restrict_access ? toset(local.allowed-users) : {}
+  for_each  = toset(local.allowed-users)
   user_name = each.key
 }
 
 data "aws_iam_group" "group" {
-  for_each   = local.restrict_access ? toset(local.allowed-groups) : {}
+  for_each   = toset(local.allowed-groups)
   group_name = each.key
 }
 
 data "aws_iam_role" "role" {
-  for_each = local.restrict_access ? toset(local.allowed-roles) : {}
+  for_each = toset(local.allowed-roles)
   name     = each.key
 }
 
