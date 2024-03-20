@@ -1,24 +1,16 @@
 name: "Terraform Automated"
 description: "Automatically initialize and apply terraform"
 inputs:
-  backend_iam_role:
-    description: Name of the Terraform backend assumable IAM Role
-    default: "github-actions_terraform-backend"
-  aws_account_id:
-    description: AWS Account ID
+  backend_iam_role_arn:
+    description: ARN of the Terraform backend assumable IAM Role
+    default: "arn:aws:iam::488021763009:role/github-actions_terraform-backend"
   aws_region:
     description: Target AWS Region
     default: "eu-central-1"
   aws_service:
     description: AWS Service, like ECR, Lambda etc (state bucket /automated/$aws_service)
-  q_service:
-    description: Quinyx Service, like qwfmbackend, osrm etc (state bucket /automated/$aws_service/$q_service)
-  q_component:
-    description: Quinyx Service subdivision, will result in separate state (state bucket /automated/$aws_service/$q_service-$q_component)
-    default: ""
-  q_environment:
-    description: Quinyx Environment, will result in separate state (state bucket /automated/$aws_service/$q_service-$q_component/$q_environment)
-    default: ""
+  tf_state_prefix:
+    description: Terraform state prefix in bucket (state bucket /automated/$aws_service/$tf_state_prefix), generally something like '$q_service/$q_component/$q_environment'
   working-directory:
     description: Specifies the working directory where the Terraform files are
 outputs:
@@ -43,9 +35,9 @@ runs:
           -backend-config='skip_credentials_validation=true' \
           -backend-config='region=${{ inputs.aws_region }}' \
           -backend-config='bucket=quinyx-terraform-state-${{ inputs.aws_region }}' \
-          -backend-config='key=${{ format('automated/{0}/{1}{2}{3}/terraform.tfstate', inputs.aws_service, inputs.q_service, (inputs.q_component != '' && format('/{0}', inputs.q_component) || ''), (inputs.q_environment != '' && format('/{0}', inputs.q_environment) || '') ) }}' \
+          -backend-config='key=${{ format('automated/{0}/{1}/terraform.tfstate', inputs.aws_service, inputs.tf_state_prefix ) }}' \
           -backend-config='dynamodb_table=quinyx-terraform-locks-${{ inputs.aws_region }}' \
-          -backend-config='role_arn=arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.backend_iam_role }}'
+          -backend-config='role_arn=${{ inputs.backend_iam_role_arn }}'
       working-directory: ${{ inputs.working-directory }}
 
     - name: TF apply
@@ -54,8 +46,6 @@ runs:
       run: |
         set -eux
         terraform apply \
-          -var 'aws_account_id=${{ inputs.aws_account_id }}' \
-          -var 'service=${{ inputs.q_service }}' \
           -auto-approve
       working-directory: ${{ inputs.working-directory }}
 
