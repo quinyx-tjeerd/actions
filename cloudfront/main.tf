@@ -30,8 +30,7 @@ data "aws_s3_bucket" "bucket" {
 }
 
 data "aws_route53_zone" "domain" {
-  name         = format("%s.", var.domain)
-  private_zone = true
+  name = var.domain
 }
 
 #################
