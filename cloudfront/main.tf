@@ -88,7 +88,7 @@ module "cdn" {
 
   aliases = concat([local.fqdn],var.domain_aliases)
 
-  comment             = var.description
+  comment             = coalesce(var.description, local.fqdn)
   price_class         = var.price_class
   enabled             = true
   is_ipv6_enabled     = true
