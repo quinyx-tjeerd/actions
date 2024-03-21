@@ -112,7 +112,7 @@ module "cdn" {
   ordered_cache_behavior = local.ordered_cache_behavior
 
   viewer_certificate = {
-    acm_certificate_arn = module.adm.acm_certificate_arn
+    acm_certificate_arn = module.acm.acm_certificate_arn
     ssl_support_method  = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
