@@ -1,0 +1,87 @@
+name: "Manage Cloudfront distribution"
+description: "Create and manage a cloudfront distribution"
+inputs:
+  aws_account_id:
+    description: AWS Account ID
+    default: "488021763009"
+  aws_region:
+    description: Target AWS Region
+    default: "eu-central-1"
+  github_iam_role_arn:
+    description: Name of the IAM Role for managing the Cloudfront Distribution, also needs to assume the terraform role
+    default: "arn:aws:iam::488021763009:role/github-actions_cloudfront"
+  environment:
+    description: Environment
+  q_service:
+    description: Quinyx Service, like 'qwfmbackend' or 'security'
+  component:
+    description: Component of service, like a sub division
+    default: ""
+  tags:
+    description: Tags to add to the cloudfront distribution
+  description:
+    description: description of the cloudfront distribution
+    default: ""
+  bucket_id:
+    description: Bucket that will act as origin
+  custom_error_responses:
+    description: Custom error responses
+    default: "{}"
+  domain:
+    description: Host name parent domain, like 'quinyx.com', 'quinyx.io'
+    default: "quinyx.com"
+  subdomain:
+    description: Subdomain part for this distribution, like 'static'
+    default: ""
+  domain_aliases:
+    description: List of CNAMEs to add to this distribution
+    default: "[]"
+  price_class:
+    description: Price class for this distribution. One of 'PriceClass_All', 'PriceClass_200', 'PriceClass_100', https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PriceClass.html
+    default: "PriceClass_All"
+  origins:
+    description: Allows for defining additional Origins, by default we add an origin with the domain name as key, if not an S3 origin; add s3 = false in the object
+    default: "{}"
+  default_cache_behavior:
+    description: default cache behaviour, will be use as base for other cache behaviors
+    default: '{ "viewer_protocol_policy": "redirect-to-https", "allowed_methods": ["GET", "HEAD", "OPTIONS"], "cached_methods": ["GET", "HEAD"], "compress": true, "query_string": true, "min_ttl": 0, "default_ttl": 3600, "max_ttl": 86400 }'
+  ordered_cache_behavior:
+    description: These objects will be merged with default cache behaviour
+    default: "[]"
+outputs:
+  distribution_id:
+    description: "Cloudfront distribution identifier"
+    value: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).distribution_id }}
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.github_iam_role_arn }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Manage Cloudfront
+      id: terraform
+      uses: quinyx-tjeerd/actions/terraform-automated@main
+      env:
+        TF_VAR_region: ${{ inputs.aws_region }}
+        TF_VAR_environment: ${{ inputs.environment }}
+        TF_VAR_service: ${{ inputs.q_service }}
+        TF_VAR_component: ${{ inputs.component }}
+        TF_VAR_tags: ${{ inputs.tags }}
+        TF_VAR_description: ${{ inputs.description }}
+        TF_VAR_bucket_id: ${{ inputs.bucket_id }}
+        TF_VAR_custom_error_responses: ${{ inputs.custom_error_responses }}
+        TF_VAR_domain: ${{ inputs.domain }}
+        TF_VAR_subdomain: ${{ inputs.subdomain }}
+        TF_VAR_domain_aliases: ${{ inputs.domain_aliases }}
+        TF_VAR_origins: ${{ inputs.origins }}
+        TF_VAR_default_cache_behavior: ${{ inputs.default_cache_behavior }}
+        TF_VAR_ordered_cache_behavior: ${{ inputs.ordered_cache_behavior }}
+        TF_VAR_price_class: ${{ inputs.price_class }}
+      with:
+        aws_region: ${{ inputs.aws_region }}
+        aws_service: Cloudfront
+        tf_state_prefix: ${{ format( '{0}{1}{2}', inputs.q_service, (inputs.component != '' && format('/{0}', inputs.component) || ''), inputs.environment) }}
+        working-directory: ${{ github.action_path }}
