@@ -69,7 +69,7 @@ module "records" {
 
   records = [
     {
-      name    = "cloudfront"
+      name    = local.fqdn
       type    = "A"
       alias   = {
         name    = module.cdn.cloudfront_distribution_domain_name
