@@ -3,7 +3,7 @@ locals {
   tags = merge( var.tags, { Environment = var.environment, Role =	"Cloudfront", Service = local.service_name, ManagedBy = "Terraform Automated Github Action" })
 
   # origins
-  origins = { for id, config in merge({ (local.fqdn) = {} }, var.origins): 
+  origins = { for id, config in merge({ (local.fqdn) = {} }, jsondecode(var.origins)): 
     id => merge(
       try(config.s3, true) ? {
         domain_name = data.aws_s3_bucket.bucket.bucket_regional_domain_name
@@ -14,8 +14,8 @@ locals {
   }
 
   # cache behaviors
-  default_cache_behavior = merge({ target_origin_id = local.fqdn }, var.default_cache_behavior)
-  ordered_cache_behavior = [ for config in var.ordered_cache_behavior: merge(local.default_cache_behavior, config) ]
+  default_cache_behavior = merge({ target_origin_id = local.fqdn }, jsondecode(var.default_cache_behavior))
+  ordered_cache_behavior = [ for config in jsondecode(var.ordered_cache_behavior): merge(local.default_cache_behavior, config) ]
 
   # domain
   fqdn   = format("%s.%s", var.subdomain, local.domain)

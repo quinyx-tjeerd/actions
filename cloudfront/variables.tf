@@ -65,30 +65,20 @@ variable "price_class" {
 }
 
 variable "origins" {
-  description = "Allows for defining additional Origins, by default we add an origin with the domain name as key, if not an S3 origin: add s3 = false in the object"
-  type        = map(any)
-  default     = {}
+  description = "Allows for defining additional Origins, by default we add an origin with the domain name as key, if not an S3 origin: add s3 = false in the object, {}"
+  type        = string
+  default     = "{}"
 }
 
 variable "default_cache_behavior" {
-  description = "default cache behaviour, will be use as base for other cache behaviors"
-  type = map(any)
-  default = {
-    viewer_protocol_policy     = "redirect-to-https"
-
-    allowed_methods = ["GET", "HEAD", "OPTIONS"]
-    cached_methods  = ["GET", "HEAD"]
-    compress        = true
-    query_string    = true
-    min_ttl         = 0
-    default_ttl     = 3600
-    max_ttl         = 86400
-  }
+  description = "default cache behaviour, will be use as base for other cache behaviors {}"
+  type = string
+  default = "{ \"viewer_protocol_policy\": \"redirect-to-https\", \"allowed_methods\": [\"GET\", \"HEAD\", \"OPTIONS\"], \"cached_methods\": [\"GET\", \"HEAD\"], \"compress\": true, \"query_string\": true, \"min_ttl\": 0, \"default_ttl\": 3600, \"max_ttl\": 86400 }"
 }
 
 variable "ordered_cache_behavior" {
-  description = "These objects will be merged with default cache behaviour"
-  type = list(any)
-  default = []
+  description = "These objects will be merged with default cache behaviour [{}]"
+  type = string
+  default = "[]"
 }
 
