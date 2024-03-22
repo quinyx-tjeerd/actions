@@ -46,6 +46,9 @@ inputs:
     description: These objects will be merged with default cache behaviour
     default: "[]"
 outputs:
+  distribution_arn:
+    description: "Cloudfront distribution ARN"
+    value: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).distribution_arn }}
   distribution_id:
     description: "Cloudfront distribution identifier"
     value: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).distribution_id }}
