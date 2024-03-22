@@ -45,6 +45,9 @@ inputs:
   ordered_cache_behavior:
     description: These objects will be merged with default cache behaviour
     default: "[]"
+  invalidate_cache:
+    description: Whether after updating the cloudfront distribution the cache should be invalidated
+    default: "true"
 outputs:
   distribution_arn:
     description: "Cloudfront distribution ARN"
@@ -85,3 +88,8 @@ runs:
         aws_service: Cloudfront
         tf_state_prefix: ${{ format( '{0}{1}{2}', inputs.q_service, (inputs.component != '' && format('/{0}', inputs.component) || ''), inputs.environment) }}
         working-directory: ${{ github.action_path }}
+
+    - name: Invalidate cache
+      if: ${{ success() && input.invalidate-cache == 'true' }}
+      shell: bash
+      run: aws cloudfront create-invalidation --distribution-id {{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).distribution_id }} --paths "/*"
