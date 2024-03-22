@@ -26,8 +26,8 @@ locals {
       ]
     ]
   ))) : []
-  attach_policy  = local.restrict_cloudfront || local.restrict_access
-  bucket_policy   = try(data.aws_iam_policy_document.cloudfront_policy["restricted"].json, data.aws_iam_policy_document.bucket_policy["restricted"].json, "{}")
+  attach_policy = local.restrict_cloudfront || local.restrict_access
+  bucket_policy = local.restrict_cloudfront ? data.aws_iam_policy_document.cloudfront_policy["restricted"].json : local.restrict_access ? data.aws_iam_policy_document.bucket_policy["restricted"].json : null
 }
 
 #################
