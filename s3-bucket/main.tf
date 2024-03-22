@@ -10,6 +10,7 @@ locals {
   tags = merge( var.tags, { Environment = var.environment, Role =	"S3 Bucket", Service = local.service_name, ManagedBy = "Terraform Automated Github Action" })
 
   restrict_access = length(concat(var.allowed_users, var.allowed_groups, var.allowed_roles)) > 0
+  restrict_cloudfront = length(var.cloudfront_distribution_arns) > 0
   allowed-users  = local.restrict_access ? concat([], var.allowed_users) : []
   allowed-groups = local.restrict_access ? concat(["devops-admins"], var.allowed_groups) : []
   allowed-roles  = local.restrict_access ? concat(["github-actions_s3-bucket"], var.allowed_roles) : []
@@ -25,7 +26,7 @@ locals {
       ]
     ]
   ))) : []
-
+  attach_policy  = local.restrict_cloudfront || local.restrict_access
   bucket_policy   = try(data.aws_iam_policy_document.cloudfront_policy["restricted"].json, data.aws_iam_policy_document.bucket_policy["restricted"].json, "{}")
 }
 
@@ -51,7 +52,7 @@ data "aws_iam_role" "role" {
 ## Constructing Policy
 #################
 data "aws_iam_policy_document" "cloudfront_policy" {
-  for_each = length(var.cloudfront_distribution_arns) > 0 ? { access = true } :{}
+  for_each = local.restrict_cloudfront ? { access = true } :{}
   statement {
     sid = "AllowCloudFrontServicePrincipal"
     effect = "Allow"
@@ -120,7 +121,7 @@ module "s3-bucket" {
   }
 
   lifecycle_rule = var.lifecycle_rules
-  attach_policy  = local.restrict_access
+  attach_policy  = local.attach_policy
   policy         = local.bucket_policy
   
   tags   = local.tags
