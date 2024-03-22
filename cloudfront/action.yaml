@@ -90,6 +90,6 @@ runs:
         working-directory: ${{ github.action_path }}
 
     - name: Invalidate cache
-      if: ${{ success() && input.invalidate-cache == 'true' }}
+      if: ${{ success() && inputs.invalidate-cache == 'true' }}
       shell: bash
       run: aws cloudfront create-invalidation --distribution-id {{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).distribution_id }} --paths "/*"
