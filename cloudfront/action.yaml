@@ -92,4 +92,4 @@ runs:
     - name: Invalidate cache
       if: ${{ success() && inputs.invalidate_cache == 'true' }}
       shell: bash
-      run: aws cloudfront create-invalidation --distribution-id {{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).distribution_id }} --paths "/*"
+      run: aws cloudfront create-invalidation --distribution-id ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).distribution_id }} --paths "/*"
