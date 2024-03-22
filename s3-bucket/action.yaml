@@ -82,6 +82,7 @@ runs:
         TF_VAR_allowed_users: ${{ inputs.allowed_users }}
         TF_VAR_allowed_groups: ${{ inputs.allowed_groups }}
         TF_VAR_allowed_roles: ${{ inputs.allowed_roles }}
+        TF_VAR_cloudfront_distribution_arns: ${{ inputs.cloudfront_distribution_arns }}
       with:
         aws_region: ${{ inputs.aws_region }}
         aws_service: S3
