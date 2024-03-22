@@ -35,13 +35,16 @@ inputs:
     description: Lifecycle rules, list of objects [ {rule} ]
     default: "[]"
   allowed_users:
-    description: List of IAM users
+    description: List of IAM users, conflicts with 'cloudfront_distribution_arns'
     default: "[]"
   allowed_groups:
-    description: List of IAM groups
+    description: List of IAM groups, conflicts with 'cloudfront_distribution_arns'
     default: "[]"
   allowed_roles:
-    description: List of IAM roles
+    description: List of IAM roles, conflicts with 'cloudfront_distribution_arns'
+    default: "[]"
+  cloudfront_distribution_arns:
+    description: Cloudfront distribution ARNs that use this bucket as their origin, conflicts with and takes precendence over 'allows_(groups|roles|users)'
     default: "[]"
 outputs:
   json:

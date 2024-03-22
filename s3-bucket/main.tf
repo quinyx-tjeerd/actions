@@ -26,7 +26,7 @@ locals {
     ]
   ))) : []
 
-  bucket_policy   = try(data.aws_iam_policy_document.bucket_policy["restricted"].json, "{}")
+  bucket_policy   = try(data.aws_iam_policy_document.cloudfront_policy["restricted"].json, data.aws_iam_policy_document.bucket_policy["restricted"].json, "{}")
 }
 
 #################
@@ -50,25 +50,44 @@ data "aws_iam_role" "role" {
 #################
 ## Constructing Policy
 #################
+data "aws_iam_policy_document" "cloudfront_policy" {
+  for_each = length(var.cloudfront_distribution_arns) > 0 ? { access = true } :{}
+  statement {
+    sid = "AllowCloudFrontServicePrincipal"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+    actions = [
+      "s3:GetObject",
+    ]
+    resources = [
+      "arn:aws:s3:::${local.bucket_name}/*",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values = var.cloudfront_distribution_arns
+    }
+  }
+}
+
 data "aws_iam_policy_document" "bucket_policy" {
   for_each = local.restrict_access ? { access = true } :{}
   statement {
     effect = "Deny"
-
     principals {
       type        = "*"
       identifiers = ["*"]
     }
-
     actions = [
       "s3:*",
     ]
-
     resources = [
       "arn:aws:s3:::${local.bucket_name}",
       "arn:aws:s3:::${local.bucket_name}/*",
     ]
-
     condition {
       test     = "StringNotLike"
       variable = "aws:userId"

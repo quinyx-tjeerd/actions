@@ -27,7 +27,7 @@ variable "aws_account_id" {
 variable "component" {
   description = "Component of service, like a sub division"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "description" {
@@ -74,5 +74,11 @@ variable "allowed_groups" {
 variable "allowed_roles" {
   type        = list(string)
   description = "Limit access to specified roles, will be combined with the groups and users"
+  default     = []
+}
+
+variable "cloudfront_distribution_arns" {
+  type        = list(string)
+  description = "Cloudfront distribution ARNs that use this bucket as their origin, conflicts with and takes precendence over 'allows_(groups|roles|users)'"
   default     = []
 }
