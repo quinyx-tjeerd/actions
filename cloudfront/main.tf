@@ -27,6 +27,7 @@ locals {
 #################
 data "aws_s3_bucket" "bucket" {
   bucket = var.bucket_id
+  region = var.bucket_region
 }
 
 data "aws_route53_zone" "domain" {

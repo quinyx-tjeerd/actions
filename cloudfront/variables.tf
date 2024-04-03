@@ -36,6 +36,12 @@ variable "bucket_id" {
   type        = string
 }
 
+variable "bucket_region" {
+  description = "Bucket Region"
+  type        = string
+  default     = "eu-central-1"
+}
+
 variable "custom_error_responses" {
   description = "Custom error responses"
   type        = map(any)
