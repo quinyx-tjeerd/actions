@@ -25,9 +25,9 @@ locals {
 #################
 ## Data Gathering
 #################
-data "aws_s3_bucket" "eu" {
+data "aws_s3_bucket" "bucket" {
   bucket = var.bucket_id
-  provider = format("aws.%s", var.bucket_region)
+  provider = aws.bucket
 }
 
 data "aws_route53_zone" "domain" {
@@ -38,19 +38,19 @@ data "aws_route53_zone" "domain" {
 ## Certificate
 #################
 provider "aws" {
-  alias  = "us-east-1"
+  alias  = "acm"
   region = "us-east-1"
 }
 provider "aws" {
-  alias  = "eu-central-1"
-  region = "eu-central-1"
+  alias  = "bucket"
+  region = var.bucket_region
 }
 
 module "acm" {
   source = "terraform-aws-modules/acm/aws"
 
   providers = {
-    aws = aws.us-east-1
+    aws = aws.acm
   }
 
   domain_name = local.fqdn
