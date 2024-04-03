@@ -24,6 +24,8 @@ inputs:
   bucket_region:
     description: Region which the bucket resides in, defaults to "eu-central-1"
     default: "eu-central-1"
+  bucket_oac_id:
+    description: Bucket OAC ID, will be used to grant cloudfront access to the bucket
   custom_error_responses:
     description: Custom error responses
     default: "{}"
@@ -79,6 +81,7 @@ runs:
         TF_VAR_description: ${{ inputs.description }}
         TF_VAR_bucket_id: ${{ inputs.bucket_id }}
         TF_VAR_bucket_region: ${{ inputs.bucket_region }}
+        TF_VAR_bucket_oac_id: ${{ inputs.bucket_oac_id }}
         TF_VAR_custom_error_responses: ${{ inputs.custom_error_responses }}
         TF_VAR_domain: ${{ inputs.domain }}
         TF_VAR_subdomain: ${{ inputs.subdomain }}

@@ -42,6 +42,11 @@ variable "bucket_region" {
   default     = "eu-central-1"
 }
 
+variable "bucket_oac_id" {
+  description = "Bucket Origin Access Control ID"
+  type        = string
+}
+
 variable "custom_error_responses" {
   description = "Custom error responses"
   type        = map(any)

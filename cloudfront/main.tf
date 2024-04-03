@@ -7,7 +7,7 @@ locals {
     id => merge(
       try(config.s3, true) ? {
         domain_name = data.aws_s3_bucket.bucket.bucket_regional_domain_name
-        origin_access_control = join("_", ["cloudfront", var.bucket_id, "oac"])
+        origin_access_control_id = var.bucket_oac_id
       }:{}, 
       config
     )
