@@ -43,6 +43,9 @@ inputs:
   allowed_roles:
     description: List of IAM roles, conflicts with 'cloudfront_distribution_arns'
     default: "[]"
+  cloudfront_enabled:
+    description: Creates Cloudfront Origin Access Control, if true, which will be used by cloudfront to access this bucket
+    default: "false"
   cloudfront_distribution_arns:
     description: Cloudfront distribution ARNs that use this bucket as their origin, conflicts with and takes precendence over 'allows_(groups|roles|users)'
     default: "[]"
@@ -82,6 +85,7 @@ runs:
         TF_VAR_allowed_users: ${{ inputs.allowed_users }}
         TF_VAR_allowed_groups: ${{ inputs.allowed_groups }}
         TF_VAR_allowed_roles: ${{ inputs.allowed_roles }}
+        TF_VAR_cloudfront_origin_access_control: ${{ inputs.cloudfront_enabled == 'true' }}
         TF_VAR_cloudfront_distribution_arns: ${{ inputs.cloudfront_distribution_arns }}
       with:
         aws_region: ${{ inputs.aws_region }}

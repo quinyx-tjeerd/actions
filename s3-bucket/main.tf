@@ -126,3 +126,12 @@ module "s3-bucket" {
   
   tags   = local.tags
 }
+
+resource "aws_cloudfront_origin_access_control" "oac" {
+  for_each = var.cloudfront_origin_access_control ? { access = true } : {}
+  name                              = join("_", ["cloudfront", local.bucket_name, "oac"])
+  description                       = "CloudFront access to S3: ${local.bucket_name}"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}

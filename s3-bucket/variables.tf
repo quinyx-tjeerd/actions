@@ -77,6 +77,12 @@ variable "allowed_roles" {
   default     = []
 }
 
+variable "cloudfront_origin_access_control" {
+  type        = bool
+  description = "Creates Cloudfront Origin Access Control, if true, which will be used by cloudfront to access this bucket"
+  default     = false
+}
+
 variable "cloudfront_distribution_arns" {
   type        = list(string)
   description = "Cloudfront distribution ARNs that use this bucket as their origin, conflicts with and takes precendence over 'allows_(groups|roles|users)'"
