@@ -59,6 +59,9 @@ outputs:
   bucket_id:
     description: "S3 Bucket ID"
     value: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).bucket_id }}
+  cloudfront_oac_id:
+    description: "Cloudfront OAC ID"
+    value: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).cloudfront_oac_id }}
 runs:
   using: "composite"
   steps:
