@@ -14,7 +14,7 @@ locals {
   }
 
   # cache behaviors
-  default_cache_behavior = merge({ target_origin_id = local.fqdn }, jsondecode(var.default_cache_behavior))
+  default_cache_behavior = merge({ target_origin_id = "default" }, jsondecode(var.default_cache_behavior))
   ordered_cache_behavior = [ for config in jsondecode(var.ordered_cache_behavior): merge(local.default_cache_behavior, config) ]
 
   # domain
