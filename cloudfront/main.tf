@@ -3,11 +3,11 @@ locals {
   tags = merge( var.tags, { Environment = var.environment, Role =	"Cloudfront", Service = local.service_name, ManagedBy = "Terraform Automated Github Action" })
 
   # origins
-  origins = { for id, config in merge({ (local.fqdn) = {} }, jsondecode(var.origins)): 
+  origins = { for id, config in merge({ default = {} }, jsondecode(var.origins)): 
     id => merge(
       try(config.s3, true) ? {
         domain_name = data.aws_s3_bucket.bucket.bucket_regional_domain_name
-        origin_access_control = "s3_oac"
+        origin_access_control = join("_", ["cloudfront", var.bucket_id, "oac"])
       }:{}, 
       config
     )
@@ -95,16 +95,6 @@ module "cdn" {
   http_version        = "http2and3"
   default_root_object = "index.html"
   tags                = local.tags
-
-  create_origin_access_control = true
-  origin_access_control = {
-    s3_oac = {
-      description      = "CloudFront access to S3"
-      origin_type      = "s3"
-      signing_behavior = "always"
-      signing_protocol = "sigv4"
-    }
-  }
 
   origin                 = local.origins
   default_cache_behavior = local.default_cache_behavior
