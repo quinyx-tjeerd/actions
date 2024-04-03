@@ -25,9 +25,9 @@ locals {
 #################
 ## Data Gathering
 #################
-data "aws_s3_bucket" "bucket" {
+data "aws_s3_bucket" "eu" {
   bucket = var.bucket_id
-  region = var.bucket_region
+  provider = aws[var.bucket_region]
 }
 
 data "aws_route53_zone" "domain" {
@@ -40,6 +40,10 @@ data "aws_route53_zone" "domain" {
 provider "aws" {
   alias  = "us-east-1"
   region = "us-east-1"
+}
+provider "aws" {
+  alias  = "eu-central-1"
+  region = "eu-central-1"
 }
 
 module "acm" {
