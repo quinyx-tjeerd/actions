@@ -27,7 +27,7 @@ locals {
 #################
 data "aws_s3_bucket" "eu" {
   bucket = var.bucket_id
-  provider = aws[var.bucket_region]
+  provider = format("aws.%s", var.bucket_region)
 }
 
 data "aws_route53_zone" "domain" {
