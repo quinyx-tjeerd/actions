@@ -48,9 +48,9 @@ variable "bucket_oac_id" {
 }
 
 variable "custom_error_responses" {
-  description = "Custom error responses"
-  type        = map(any)
-  default     = {}
+  description = "Custom error responses, list of objects [{}]"
+  type        = list(any)
+  default     = []
 }
 
 variable "domain" {
