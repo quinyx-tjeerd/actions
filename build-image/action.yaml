@@ -27,23 +27,26 @@ inputs:
     default: "cache-policy.json"
   build_arguments:
     description: Build arguments to pass to the build
-    default: "[]"
+    default: ""
   cache:
     description: Enable Kaniko cache
     default: "true"
 outputs:
-  image_tag:
-    description: "Tag"
-    value: ${{ steps.metadata.outputs.tags }}
-  image_digest:
-    description: "Digest"
-    value: ${{ steps.build-publish.outputs.digest }}
-  image:
-    description: "image"
-    value: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).aws_ecr_repo_url }}
   full_image:
     description: "Full image"
-    value: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}:${{ steps.metadata.outputs.tags }}
+    value: ${{ steps.metadata.outputs.tags }}
+  digest:
+    description: "Digest"
+    value: ${{ steps.build-publish.outputs.digest }}
+  registry:
+    description: "Registry"
+    value: ${{ steps.output.outputs.registry }}
+  image:
+    description: "Image"
+    value: ${{ steps.output.outputs.image }}
+  tag:
+    description: "Tag"
+    value: ${{ steps.output.outputs.tag }}
 runs:
   using: "composite"
   steps:
@@ -97,3 +100,9 @@ runs:
         file: ${{ inputs.docker_build_dir }}/${{ inputs.dockerfile }}
         build-args: ${{ inputs.build_arguments }}
         kaniko-args: --cache-dir=/githubrunner/kaniko/cache
+
+    - name: prepare output
+      id: output
+      shell: bash
+      run: |
+        echo "${{ steps.metadata.outputs.tags }}" | jq -rR 'capture("(?<registry>[^/]+)/(?<image>[^:]+):(?<tag>.*)") | to_entries[] | "\(.key)=\(.value)"' >> "$GITHUB_OUTPUT"
