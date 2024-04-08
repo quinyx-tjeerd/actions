@@ -10,7 +10,7 @@ inputs:
   github_iam_role_arn:
     description: Name of the IAM Role for adding access to ECR repo, also needs to assume the terraform role
     default: "arn:aws:iam::488021763009:role/github-actions_ecr"
-  path_to_dockerfile:
+  dockerfile:
     description: Path to the dockerfile (default = 'Dockerfile')
     default: "Dockerfile"
   docker_build_dir:
@@ -19,9 +19,6 @@ inputs:
   image_name:
     description: Repo name of the images.
     required: true
-  image_tag:
-    description: Tag to apply to images.
-    default: snapshot-artifact
   lifecycle_policy_file:
     description: Path to the lifecycle policy JSON file (default = 'policy.json')
     default: "policy.json"
@@ -36,11 +33,17 @@ inputs:
     default: "true"
 outputs:
   image_tag:
+    description: "Tag"
+    value: ${{ steps.metadata.outputs.tags[0] }}
+  image_digest:
     description: "Digest"
     value: ${{ steps.build-publish.outputs.digest }}
+  image:
+    description: "image"
+    value: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).aws_ecr_repo_url }}
   full_image:
     description: "Full image"
-    value: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}@${{ steps.build-publish.outputs.digest }}
+    value: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}:${{ steps.metadata.outputs.tags[0] }}
 runs:
   using: "composite"
   steps:
@@ -52,6 +55,7 @@ runs:
         aws-region: ${{ inputs.aws_region }}
 
     - name: Manage ECR
+      id: terraform
       uses: quinyx-tjeerd/actions/terraform-automated@main
       env:
         TF_VAR_aws_account_id: ${{ inputs.aws_account_id }}
@@ -75,9 +79,12 @@ runs:
     - uses: docker/metadata-action@v5
       id: metadata
       with:
-        images: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}
+        images: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).aws_ecr_repo_url }}
         tags: |
           type=sha
+
+    - shell: bash
+      run: echo '${{ toJSON(steps.metadata.outputs) }}'
 
     - name: Build and Publish
       id: build-publish
@@ -87,8 +94,8 @@ runs:
         tags: ${{ steps.metadata.outputs.tags }}
         labels: ${{ steps.metadata.outputs.labels }}
         cache: ${{ inputs.cache == 'true' }}
-        cache-repository: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}/cache
+        cache-repository: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).aws_ecr_cache_repo_url }}
         context: ${{ inputs.docker_build_dir }}
-        file: ${{ inputs.docker_build_dir }}/${{ inputs.path_to_dockerfile }}
+        file: ${{ inputs.docker_build_dir }}/${{ inputs.dockerfile }}
         build-args: ${{ inputs.build_arguments }}
         kaniko-args: --cache-dir=/githubrunner/kaniko/cache
