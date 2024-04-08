@@ -34,7 +34,7 @@ inputs:
 outputs:
   image_tag:
     description: "Tag"
-    value: ${{ steps.metadata.outputs.tags[0] }}
+    value: ${{ steps.metadata.outputs.tags }}
   image_digest:
     description: "Digest"
     value: ${{ steps.build-publish.outputs.digest }}
@@ -43,7 +43,7 @@ outputs:
     value: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).aws_ecr_repo_url }}
   full_image:
     description: "Full image"
-    value: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}:${{ steps.metadata.outputs.tags[0] }}
+    value: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image_name }}:${{ steps.metadata.outputs.tags }}
 runs:
   using: "composite"
   steps:
@@ -82,9 +82,6 @@ runs:
         images: ${{ steps.terraform.outputs.json && fromJSON(steps.terraform.outputs.json).aws_ecr_repo_url }}
         tags: |
           type=sha
-
-    - shell: bash
-      run: echo '${{ toJSON(steps.metadata.outputs) }}'
 
     - name: Build and Publish
       id: build-publish
