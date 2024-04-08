@@ -27,7 +27,7 @@ inputs:
     default: "cache-policy.json"
   build_arguments:
     description: Build arguments to pass to the build
-    default: ""
+    default: "[]"
   cache:
     description: Enable Kaniko cache
     default: "true"
