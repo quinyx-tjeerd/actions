@@ -62,6 +62,7 @@ runs:
         TF_VAR_repository_name: ${{ inputs.image_name }}
         TF_VAR_lifecycle_policy: ${{ inputs.lifecycle_policy_file }}
         TF_VAR_cache_lifecycle_policy: ${{ inputs.cache_lifecycle_policy_file }}
+        TF_VAR_cache: ${{ inputs.cache == 'true' }}
         TF_VAR_iam_role: ${{ inputs.github_iam_role }}
       with:
         aws_region: ${{ inputs.aws_region }}
