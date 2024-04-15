@@ -4,7 +4,7 @@ inputs:
   aws_region:
     description: Target AWS Region
     default: "eu-central-1"
-  github_iam_role:
+  github_iam_role_arn:
     description: Name of the IAM Role for managing the Lambda Function, also needs to assume the terraform role
     default: "arn:aws:iam::488021763009:role/github-actions_lambda-function"
   q_service:
