@@ -67,5 +67,5 @@ runs:
       with:
         aws_region: ${{ inputs.aws_region }}
         aws_service: Lambda
-        tf_state_prefix: ${{ format( '{0}{1}{2}', inputs.q_service, (inputs.component != '' && format('/{0}', inputs.component) || ''), inputs.environment) }}
+        tf_state_prefix: ${{ format( '{0}{1}{2}', inputs.q_service, (inputs.component != '' && format('/{0}', inputs.component) || ''), format('/{0}', inputs.environment)) }}
         working-directory: ${{ github.action_path }}
