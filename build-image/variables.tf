@@ -3,9 +3,9 @@ variable "repository_name" {
   type        = string
 }
 
-variable "iam_role" {
+variable "iam_role_arn" {
   type        = string
-  description = "Self-hosted runner EC2 instance role"
+  description = "IAM role ARN that manages the images"
 }
 
 variable "lifecycle_policy" {

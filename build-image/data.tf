@@ -34,7 +34,7 @@ data "aws_iam_policy_document" "github_only_push" {
     effect = "Allow"
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${local.account-id}:role/${var.iam_role}"]
+      identifiers = ["${var.iam_role_arn}"]
     }
     actions = [
       "ecr:BatchCheckLayerAvailability",
