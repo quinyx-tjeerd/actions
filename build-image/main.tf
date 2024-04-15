@@ -35,7 +35,7 @@ data "aws_iam_policy_document" "ecr_repo_policy" {
 }
 
 resource "aws_ecr_repository_policy" "repository" {
-  repository = aws_ecr_repository.repository.name
+  repository = aws_ecr_repository.repository[format("%s", var.repository_name)].name
   policy     = data.aws_iam_policy_document.ecr_repo_policy.json
 }
 
