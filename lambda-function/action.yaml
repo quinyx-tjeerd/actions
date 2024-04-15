@@ -36,6 +36,9 @@ inputs:
   vpc:
     description: whether this function should live within the vpc
     default: "false"
+  iam_role_name:
+    description: IAM role the lambda should be using
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -60,6 +63,7 @@ runs:
         TF_VAR_timeout: ${{ inputs.timeout }}
         TF_VAR_vpc: ${{ inputs.vpc == 'true' }}
         TF_VAR_image: ${{ inputs.function_image }}
+        TF_VAR_iam_role_name: ${{ inputs.iam_role_name }}
       with:
         aws_region: ${{ inputs.aws_region }}
         aws_service: Lambda
