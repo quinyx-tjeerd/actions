@@ -28,3 +28,15 @@ variable "cache" {
   type        = bool
   default     = true
 }
+
+variable "lambda" {
+  description = "Whether this image is intended for use as lambda function"
+  type        = bool
+  default     = false
+}
+
+variable "org_pull" {
+  description = "Whether everyone in the org should be allowed to pull this image"
+  type        = bool
+  default     = false
+}

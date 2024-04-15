@@ -6,7 +6,8 @@ locals {
 #       only allows reads from an org, so this is a false positive
 #       in tfsec
 # tfsec:ignore:aws-ecr-no-public-access
-data "aws_iam_policy_document" "ecr_repo_policy" {
+data "aws_iam_policy_document" "org_pull" {
+  for_each = var.org_pull ? { policy = true } : {}
   statement {
     sid    = "All Accounts in the Org can pull"
     effect = "Allow"
@@ -25,6 +26,9 @@ data "aws_iam_policy_document" "ecr_repo_policy" {
       values   = ["${var.aws_account_id}"]
     }
   }
+}
+
+data "aws_iam_policy_document" "github_only_push" {
   statement {
     sid    = "Allow push only from github actions"
     effect = "Allow"
@@ -32,15 +36,33 @@ data "aws_iam_policy_document" "ecr_repo_policy" {
       type        = "AWS"
       identifiers = ["arn:aws:iam::${local.account-id}:role/${var.iam_role}"]
     }
-    actions = ["ecr:BatchCheckLayerAvailability",
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
       "ecr:CompleteLayerUpload",
       "ecr:InitiateLayerUpload",
       "ecr:PutImage",
-    "ecr:UploadLayerPart"]
+      "ecr:UploadLayerPart"
+    ]
     condition {
       test     = "StringEquals"
       variable = "aws:PrincipalAccount"
       values   = ["${var.aws_account_id}"]
     }
+  }
+}
+
+data "aws_iam_policy_document" "lambda" {
+  for_each = var.lambda ? { policy = true } : {}
+  statement {
+    sid    = "Allow usage as lambda function"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+    actions = [
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer"
+    ]
   }
 }

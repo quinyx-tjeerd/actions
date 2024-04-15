@@ -26,6 +26,19 @@ resource "aws_ecr_repository" "repository" {
   }
 }
 
+data "aws_iam_policy_document" "ecr_repo_policy" {
+  source_policy_documents = [
+    data.aws_iam_policy_document.github_only_push.json,
+    var.lambda ? data.aws_iam_policy_document.lambda["policy"].json : "",
+    var.org_pull ? data.aws_iam_policy_document.org_pull["policy"].json : ""
+  ]
+}
+
+resource "aws_ecr_repository_policy" "repository" {
+  repository = aws_ecr_repository.repository.name
+  policy     = data.aws_iam_policy_document.ecr_repo_policy.json
+}
+
 resource "aws_ecr_lifecycle_policy" "policy" {
   for_each   = local.repos
   repository = aws_ecr_repository.repository[each.key].name

@@ -31,6 +31,12 @@ inputs:
   cache:
     description: Enable Kaniko cache
     default: "true"
+  lambda:
+    description: Allow image to be used as Lambda function
+    default: "false"
+  org_pull:
+    description: Allow everyone in AWS org to pull image
+    default: "false"
 outputs:
   full_image:
     description: "Full image"
@@ -66,6 +72,8 @@ runs:
         TF_VAR_lifecycle_policy: ${{ inputs.lifecycle_policy_file }}
         TF_VAR_cache_lifecycle_policy: ${{ inputs.cache_lifecycle_policy_file }}
         TF_VAR_cache: ${{ inputs.cache == 'true' }}
+        TF_VAR_lambda: ${{ inputs.lambda == 'true' }}
+        TF_VAR_org_pull: ${{ inputs.org_pull == 'true' }}
         TF_VAR_iam_role: ${{ inputs.github_iam_role }}
       with:
         aws_region: ${{ inputs.aws_region }}
