@@ -37,6 +37,7 @@ runs:
         TF_VAR_aws_account_id: ${{ inputs.aws_account_id }}
         TF_VAR_roles_yaml: ${{ inputs.roles_yaml }}
         TF_VAR_tags: ${{ inputs.tags }}
+        TF_VAR_service: ${{ inputs.q_service }}
 
       with:
         aws_region: ${{ inputs.aws_region }}
