@@ -10,8 +10,8 @@ inputs:
   github_iam_role_arn:
     description: Name of the IAM Role for managing IAM Roles, also needs to assume the terraform role
     default: "arn:aws:iam::488021763009:role/github-actions_iam-roles"
-  roles_yaml:
-    description: Path to Yaml file containing the role definitions
+  roles:
+    description: JSON string containing the role definitions
   backend_iam_role:
     description: Name of the Terraform backend assumable IAM Role
     default: "github-actions_terraform-backend"
@@ -30,12 +30,14 @@ runs:
         aws-region: ${{ inputs.aws_region }}
     - name: Input roles
       shell: bash
-      run: echo roles-input ${{ inputs.roles_yaml }}
+      run: |
+        echo 'roles input:'
+        echo ${{ inputs.roles }} | jq
     - name: Manage IAM Roles
       uses: quinyx-tjeerd/actions/terraform-automated@main
       env:
         TF_VAR_aws_account_id: ${{ inputs.aws_account_id }}
-        TF_VAR_roles_yaml: ${{ inputs.roles_yaml }}
+        TF_VAR_roles: ${{ inputs.roles }}
         TF_VAR_tags: ${{ inputs.tags }}
         TF_VAR_service: ${{ inputs.q_service }}
 
