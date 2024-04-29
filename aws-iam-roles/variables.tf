@@ -14,7 +14,7 @@ variable "aws_account_id" {
   type        = string
 }
 
-variable "roles_yaml" {
-  description = "path to yaml file containing role definitions"
-  type        = string
+variable "roles" {
+  description = "List of role definitions"
+  type        = list
 }

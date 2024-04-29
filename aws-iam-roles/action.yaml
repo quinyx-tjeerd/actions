@@ -11,7 +11,7 @@ inputs:
     description: Name of the IAM Role for managing IAM Roles, also needs to assume the terraform role
     default: "arn:aws:iam::488021763009:role/github-actions_iam-roles"
   roles:
-    description: JSON string containing the role definitions
+    description: JSON string, List containing the role definitions
   backend_iam_role:
     description: Name of the Terraform backend assumable IAM Role
     default: "github-actions_terraform-backend"

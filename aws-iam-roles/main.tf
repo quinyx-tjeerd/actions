@@ -23,13 +23,13 @@ locals {
       prod    = {}
     }
   }
-  roles = try(yamldecode(file(var.roles_yaml)).roles,{})
+  roles = try(var.roles,[])
   default_role = {
     description = "Managed by Automated Terraform"
   }
   roles_processed = {
     for data in flatten(concat([
-      for role, config in local.roles : [
+      for config in local.roles : [
         for env, env_config in try(local.env_preset[config.env_config], config.env_config, { "" = {}}) : 
           merge(local.default_role, config, { 
               role = join("_", compact([
