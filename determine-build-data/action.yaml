@@ -21,9 +21,9 @@ runs:
       run: |
         set -eux
         BUILD="{}"
-        if [ -f "${{ input.path }}/build.yaml" ]; then
-            BUILD=$(yq -o json "${{ input.path }}/build.yaml" | jq -c)
+        if [ -f "${{ inputs.path }}/build.yaml" ]; then
+            BUILD=$(yq -o json "${{ inputs.path }}/build.yaml" | jq -c)
         fi
         echo 'Build Data:'
-        jq 'if (has("image_name") | not) then (. + {image_name: "${{ input.service }}"}) else . end' <<< "$BUILD"
-        jq -r 'if (has("image_name") | not) then (. + {image_name: "${{ input.service }}"}) else . end | to_entries[] | "\(.key)=\(.value)"' <<< "$BUILD" >> $GITHUB_OUTPUT
+        jq 'if (has("image_name") | not) then (. + {image_name: "${{ inputs.service }}"}) else . end' <<< "$BUILD"
+        jq -r 'if (has("image_name") | not) then (. + {image_name: "${{ inputs.service }}"}) else . end | to_entries[] | "\(.key)=\(.value)"' <<< "$BUILD" >> $GITHUB_OUTPUT
