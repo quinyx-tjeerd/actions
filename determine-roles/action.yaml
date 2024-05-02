@@ -18,7 +18,7 @@ runs:
       run: |
         ROLES="[]"
         if [ -f "${{ inputs.path }}/aws-iam-roles.yaml" ]; then
-            ROLES=$(yq '.roles' -o json "${{ steps.data.outputs.path }}/aws-iam-roles.yaml" | jq -c)
+            ROLES=$(yq '.roles' -o json "${{ inputs.path }}/aws-iam-roles.yaml" | jq -c)
         fi
         echo 'Roles:'
         echo $ROLES | jq
