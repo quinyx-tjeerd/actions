@@ -1,0 +1,24 @@
+name: Determine Roles
+description: Extract Roles for given path
+inputs:
+  path:
+    description: Path to source files
+    required: true
+outputs:
+  roles:
+    description: JSON list containing role definitions
+    value: ${{ steps.roles.outputs.roles }}
+runs:
+  using: "composite"
+  steps:
+    - name: Determine Roles
+      id: roles
+      shell: bash
+      run: |
+        ROLES="[]"
+        if [ -f "${{ inputs.path }}/aws-iam-roles.yaml" ]; then
+            ROLES=$(yq '.roles' -o json "${{ steps.data.outputs.path }}/aws-iam-roles.yaml" | jq -c)
+        fi
+        echo 'Roles:'
+        echo $ROLES | jq
+        jq -r '"roles=\(tostring)"' <<< "$ROLES" >> $GITHUB_OUTPUT
