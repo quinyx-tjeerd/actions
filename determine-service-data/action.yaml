@@ -1,0 +1,32 @@
+name: Determine Service Data
+description: Extract service data from input
+inputs:
+  data:
+    description: json string containing service data 'path' and 'service'
+    required: true
+outputs:
+  service:
+    description: Service name
+    value: ${{ steps.data.outputs.service }}
+  path:
+    description: Service path
+    value: ${{ steps.data.outputs.path }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Validate input data
+      shell: bash
+      run: |
+        if [ "$(jq '[has("path"), has("service")] | all' <<< '${{ inputs.data }}')" == 'false' ]; then
+          echo "Data doesn't contain 'path' AND 'service' properties"
+          exit 1;
+        fi
+    - name: Collect Data
+      id: data
+      shell: bash
+      run: |
+        DATA=$(jq -c <<< '${{ inputs.data }}')
+        echo 'Data:'
+        echo $DATA | jq
+        echo $DATA | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_OUTPUT
