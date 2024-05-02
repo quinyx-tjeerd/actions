@@ -1,0 +1,25 @@
+name: Determine Tags
+description: Extract tags for given path
+inputs:
+  path:
+    description: Path to source files
+    required: true
+outputs:
+  tags:
+    description: JSON object containing tags
+    value: ${{ steps.tags.outputs.tags }}
+runs:
+  using: "composite"
+  steps:
+    - name: Determine Tags
+      id: tags
+      shell: bash
+      run: |
+        TAGS="{}"
+        if [ -f "${{ inputs.path }}/tags.yaml" ]; then
+            TAGS=$(yq -o json "${{ inputs.path }}/tags.yaml" | jq -c)
+        fi
+        TAGS=$(jq -c --arg repo "${{ github.repository }}" --arg path "${{ inputs.path }}" '. + {src_repo: $repo, src_path: $path}' <<< "$TAGS")
+        echo 'Tags:'
+        echo $TAGS | jq
+        jq -r '"tags=\(tostring)"' <<< "$TAGS" >> $GITHUB_OUTPUT
