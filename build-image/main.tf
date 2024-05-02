@@ -24,6 +24,7 @@ resource "aws_ecr_repository" "repository" {
   encryption_configuration {
     encryption_type = "KMS"
   }
+  tags = var.tags
 }
 
 data "aws_iam_policy_document" "ecr_repo_policy" {

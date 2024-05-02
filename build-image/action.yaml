@@ -19,6 +19,9 @@ inputs:
   image_name:
     description: Repo name of the images.
     required: true
+  tags:
+    description: Tags to add to the ECR Repo
+    required: true
   lifecycle_policy_file:
     description: Path to the lifecycle policy JSON file (default = 'policy.json')
     default: "policy.json"
@@ -69,6 +72,7 @@ runs:
       env:
         TF_VAR_aws_account_id: ${{ inputs.aws_account_id }}
         TF_VAR_repository_name: ${{ inputs.image_name }}
+        TF_VAR_tags: ${{ inputs.tags }}
         TF_VAR_lifecycle_policy: ${{ inputs.lifecycle_policy_file }}
         TF_VAR_cache_lifecycle_policy: ${{ inputs.cache_lifecycle_policy_file }}
         TF_VAR_cache: ${{ inputs.cache == 'true' }}

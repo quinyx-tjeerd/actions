@@ -1,3 +1,9 @@
+variable "tags" {
+  description = "Tags to add to resources"
+  default     = {}
+  type        = map(any)
+}
+
 variable "repository_name" {
   description = "Name of the repo"
   type        = string
