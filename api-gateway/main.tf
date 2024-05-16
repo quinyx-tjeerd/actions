@@ -19,7 +19,7 @@ locals {
   gateway_name = format("%s-%s", var.service, var.region)
   domain_name  = try(var.custom_domain_name, format("%s.lambda.quinyx.io", local.gateway_name))
   domain = regex("[^.]+.[^.]+$", local.domain_name)
-  subdomain = replace(local.domain, regex("[^.]+.[^.]+$", local.domain_name), "")
+  subdomain = replace(local.domain_name, regex("[^.]+.[^.]+$", local.domain_name), "")
   custom_cert  = !endswith(local.domain_name, ".lambda.quinyx.io")
   domain_cert  = local.custom_cert ? try(module.acm["cert"].acm_certificate_arn, null) : try(local.certs[var.region], null)
 
@@ -29,6 +29,7 @@ locals {
 
   integrations = { for resource in local.processed_resources:
     format("%s %s", upper(resource.method), resource.path) => {
+      authorization_type     = try(resource.authorization_type, null)
       lambda_arn             = try(resource.lambda_arn, null)
       timeout_milliseconds   = try(resource.timeout_milliseconds, 300)
     }
