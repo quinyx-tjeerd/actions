@@ -52,10 +52,7 @@ data "aws_route53_zone" "domain" {
   name = local.domain
 }
 
-data "aws_lambda_function" "lambdas" {
-  for_each      = local.lambda_permissions
-  function_name = each.value.function
-}
+data "aws_lambda_functions" "all" {}
 
 #################
 ## Certificate
@@ -146,7 +143,7 @@ module "records" {
 ## Lambda Execution Permission
 #################
 resource "aws_lambda_permission" "allow_api_gateway" {
-  for_each      = { for key, value in local.lambda_permissions: key => value if try(data.aws_lambda_function.lambdas[key].arn, null) != null}
+  for_each      = { for key, value in local.lambda_permissions: key => value if contains(data.data.aws_lambda_functions.all.function_arns, value.function)}
   statement_id  = "apigateway-${local.gateway_name}"
   action        = "lambda:InvokeFunction"
   function_name = data.aws_lambda_function.lambdas[each.key].arn
