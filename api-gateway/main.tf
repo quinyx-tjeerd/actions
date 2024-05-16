@@ -30,6 +30,9 @@ locals {
   integrations = { for resource in local.processed_resources:
     format("%s %s", upper(resource.method), resource.path) => {
       authorization_type     = try(resource.authorization_type, null)
+      integration_uri        = try(resource.integration_uri, null)
+      integration_type       = try(resource.integration_type, null)
+      integration_method     = try(resource.integration_method, null)
       lambda_arn             = try(resource.lambda_arn, null)
       timeout_milliseconds   = try(resource.timeout_milliseconds, 300)
     }
