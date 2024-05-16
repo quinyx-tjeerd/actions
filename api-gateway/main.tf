@@ -4,8 +4,8 @@ locals {
     us-east-1 = "arn:aws:acm:us-east-1:488021763009:certificate/4f49ea16-3516-4015-8783-dee0ad3bb972"
   }
   zones = {
-    "quinyx.io" = ""
-    "quinyx.com" = ""
+    "quinyx.io" = "Z1D63PL5CU6QG6"
+    "quinyx.com" = "Z32G1K909AXTHR"
   }
   processed_stages = [ 
     for stage in var.stages: 
@@ -34,7 +34,7 @@ locals {
       lambda_arn             = try(resource.lambda_arn, null)
       timeout_milliseconds   = try(resource.timeout_milliseconds, 300)
     }
-    if resource.method && resource.path
+    if alltrue([try(resource.method, null) != null, try(resource.path, null) != null])
   }
 }
 
@@ -76,7 +76,7 @@ resource "aws_apigatewayv2_stage" "stage" {
   name        = each.key
   auto_deploy = true
 
-  stage_variables = merge(each.value, { ENVIRONMENT = each.key })
+  stage_variables = merge(each.value, { Environment = each.key })
 
   tags = merge(local.tags, { Environment = each.key })
 
@@ -94,3 +94,4 @@ resource "aws_apigatewayv2_api_mapping" "mapping" {
   stage       = aws_apigatewayv2_stage.stage[each.key].id
   api_mapping_key = each.key
 }
+
