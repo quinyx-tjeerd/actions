@@ -3,7 +3,7 @@ locals {
     eu-central-1 = "arn:aws:acm:eu-central-1:488021763009:certificate/b81fc160-7626-42d4-b4e9-99eab089c57f"
     us-east-1 = "arn:aws:acm:us-east-1:488021763009:certificate/4f49ea16-3516-4015-8783-dee0ad3bb972"
   }
-  
+
   processed_stages = [ 
     for stage in var.stages: 
       merge({variables = {}}, stage) 
@@ -43,19 +43,10 @@ data "aws_route53_zone" "domain" {
 #################
 ## Certificate
 #################
-provider "aws" {
-  alias  = "acm"
-  region = "us-east-1"
-}
-
 module "acm" {
   for_each = local.custom_cert ? { cert = true } : {}
   source  = "terraform-aws-modules/acm/aws"
   version = "~> 4.0"
-
-  providers = {
-    aws = aws.acm
-  }
 
   domain_name = local.domain_name
   zone_id     = data.aws_route53_zone.domain.zone_id
@@ -123,7 +114,7 @@ module "records" {
 
   records = [
     {
-      name    = var.subdomain
+      name    = local.subdomain
       type    = "A"
       alias   = {
         name    = module.apigateways.apigatewayv2_domain_name_target_domain_name
