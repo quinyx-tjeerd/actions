@@ -46,7 +46,7 @@ runs:
         echo 'API Gateway / Resources:'
         echo $RESOURCES | jq
 
-        jq -r '"custom_domain_name=\(.)"' <<< "$DOMAIN_NAME" >> $GITHUB_OUTPUT
+        echo "custom_domain_name=$DOMAIN_NAME" >> $GITHUB_OUTPUT
         jq -r '"stages=\(tostring)"' <<< "$STAGES" >> $GITHUB_OUTPUT
         jq -r '"default_resource=\(tostring)"' <<< "$DEFAULT_RESOURCE" >> $GITHUB_OUTPUT
         jq -r '"resources=\(tostring)"' <<< "$RESOURCES" >> $GITHUB_OUTPUT
