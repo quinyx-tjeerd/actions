@@ -26,11 +26,21 @@ locals {
   tags = merge( var.tags, { Environment = var.environment, Role =	"API Gateway", Service = var.service })
 
   stages = { for stage in local.processed_stages: stage.name => stage.variables}
+  lambdas = { for resource in local.processed_resources: resource.path => resource if try(resource.lambda_arn, null) != null }
 
   integrations = { for resource in local.processed_resources:
     format("%s %s", upper(resource.method), resource.path) => resource
     if alltrue([try(resource.method, null) != null, try(resource.path, null) != null])
   }
+
+  # add permission for this API Gateway to access the specified lambda's
+  lambda_permissions = { for pair in setproduct(keys(local.stages), keys(local.lambdas)): 
+    format("%s/%s", pair[1], pair[0]) => {
+      stage = pair[0]
+      method = try(local.lambdas[pair[1]].method, null)
+      path = pair[1]
+      function = replace(try(local.lambdas[pair[1]].lambda_arn, null), "$${stageVariables.Environment}", pair[0])}
+    }
 }
 
 data "aws_route53_zone" "domain" {
@@ -120,4 +130,16 @@ module "records" {
       }
     },
   ]
+}
+
+#################
+## Lambda Execution Permission
+#################
+resource "aws_lambda_permission" "allow_api_gateway" {
+  for_each      = local.lambda_permissions
+  statement_id  = "apigateway-${local.gateway_name}"
+  action        = "lambda:InvokeFunction"
+  function_name = each.value.function
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = format("%s/%s/%s%s", module.apigateways.apigatewayv2_api_arn, each.value.stage, each.value.method, each.value.path)
 }
