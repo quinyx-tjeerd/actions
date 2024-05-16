@@ -1,0 +1,52 @@
+name: Determine API Gateway
+description: Extract API Gateway for given path
+inputs:
+  path:
+    description: Path to source files
+    required: true
+outputs:
+  resources:
+    description: JSON list containing resource definitions
+    value: ${{ steps.api-gateway.outputs.resources }}
+  stages:
+    description: JSON list containing stage definitions
+    value: ${{ steps.api-gateway.outputs.stages }}
+  default_resource:
+    description: JSON object containing the default resource definition
+    value: ${{ steps.api-gateway.outputs.default_resource }}
+  custom_domain_name:
+    description: String containing the domain name
+    value: ${{ steps.api-gateway.outputs.custom_domain_name }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Determine API Gateway
+      id: api-gateway
+      shell: bash
+      run: |
+        RESOURCES="[]"
+        STAGES="[]"
+        DEFAULT_RESOURCE="{}"
+        DOMAIN_NAME=""
+
+        if [ -f "${{ inputs.path }}/api-gateway.yaml" ]; then
+            RESOURCES=$(yq '.resources' -o json "${{ inputs.path }}/api-gateway.yaml" | jq -c)
+            STAGES=$(yq '.stages' -o json "${{ inputs.path }}/api-gateway.yaml" | jq -c)
+            DEFAULT_RESOURCE=$(yq '.default' -o json "${{ inputs.path }}/api-gateway.yaml" | jq -c)
+            DOMAIN_NAME=$(yq '.custom_domain_name' -o json "${{ inputs.path }}/api-gateway.yaml" | jq -r)
+        fi
+
+        echo 'API Gateway / Custom Domain Name:'
+        echo $DOMAIN_NAME
+        echo 'API Gateway / Stages:'
+        echo $STAGES | jq
+        echo 'API Gateway / Default Resource:'
+        echo $DEFAULT_RESOURCE | jq
+        echo 'API Gateway / Resources:'
+        echo $RESOURCES | jq
+
+        jq -r '"custom_domain_name=\(.)"' <<< "$DOMAIN_NAME" >> $GITHUB_OUTPUT
+        jq -r '"stages=\(tostring)"' <<< "$STAGES" >> $GITHUB_OUTPUT
+        jq -r '"default_resource=\(tostring)"' <<< "$DEFAULT_RESOURCE" >> $GITHUB_OUTPUT
+        jq -r '"resources=\(tostring)"' <<< "$RESOURCES" >> $GITHUB_OUTPUT
