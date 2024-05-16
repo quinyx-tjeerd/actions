@@ -146,7 +146,7 @@ module "records" {
 ## Lambda Execution Permission
 #################
 resource "aws_lambda_permission" "allow_api_gateway" {
-  for_each      = local.lambda_permissions
+  for_each      = { for key, value in local.lambda_permissions: key => value if try(data.aws_lambda_function.lambdas[key].arn, null) != null}
   statement_id  = "apigateway-${local.gateway_name}"
   action        = "lambda:InvokeFunction"
   function_name = data.aws_lambda_function.lambdas[each.key].arn
