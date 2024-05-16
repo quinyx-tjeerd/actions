@@ -143,10 +143,10 @@ module "records" {
 ## Lambda Execution Permission
 #################
 resource "aws_lambda_permission" "allow_api_gateway" {
-  for_each      = { for key, value in local.lambda_permissions: key => value if contains(data.data.aws_lambda_functions.all.function_arns, value.function)}
+  for_each      = { for key, value in local.lambda_permissions: key => value if contains(data.aws_lambda_functions.all.function_arns, value.function)}
   statement_id  = "apigateway-${local.gateway_name}"
   action        = "lambda:InvokeFunction"
-  function_name = data.aws_lambda_function.lambdas[each.key].arn
+  function_name = each.value.function
   principal     = "apigateway.amazonaws.com"
   source_arn    = format("arn:aws:apigateway:%s:%s:%s/%s/%s%s", var.region, data.aws_caller_identity.current.account_id, module.apigateways.apigatewayv2_api_id, each.value.stage, each.value.method, each.value.path)
 }
