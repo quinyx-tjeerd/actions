@@ -3,10 +3,7 @@ locals {
     eu-central-1 = "arn:aws:acm:eu-central-1:488021763009:certificate/b81fc160-7626-42d4-b4e9-99eab089c57f"
     us-east-1 = "arn:aws:acm:us-east-1:488021763009:certificate/4f49ea16-3516-4015-8783-dee0ad3bb972"
   }
-  zones = {
-    "quinyx.io" = "Z1D63PL5CU6QG6"
-    "quinyx.com" = "Z32G1K909AXTHR"
-  }
+  
   processed_stages = [ 
     for stage in var.stages: 
       merge({variables = {}}, stage) 
@@ -21,9 +18,10 @@ locals {
 
   gateway_name = format("%s-%s", var.service, var.region)
   domain_name  = try(var.custom_domain_name, format("%s.lambda.quinyx.io", local.gateway_name))
+  domain = regex("[^.]+.[^.]+$", local.domain_name)
+  subdomain = replace(local.domain, regex("[^.]+.[^.]+$", local.domain_name), "")
   custom_cert  = !endswith(local.domain_name, ".lambda.quinyx.io")
   domain_cert  = local.custom_cert ? try(module.acm["cert"].acm_certificate_arn, null) : try(local.certs[var.region], null)
-  zone         = local.custom_cert ? try(local.zones[regex("[^.]+.[^.]+$", local.domain_name)], null) : null
 
   tags = merge( var.tags, { Environment = var.environment, Role =	"API Gateway", Service = var.service })
 
@@ -38,21 +36,40 @@ locals {
   }
 }
 
+data "aws_route53_zone" "domain" {
+  name = local.domain
+}
+
+#################
+## Certificate
+#################
+provider "aws" {
+  alias  = "acm"
+  region = "us-east-1"
+}
+
 module "acm" {
   for_each = local.custom_cert ? { cert = true } : {}
   source  = "terraform-aws-modules/acm/aws"
   version = "~> 4.0"
 
-  domain_name  = local.domain_name
-  zone_id      = local.zone
+  providers = {
+    aws = aws.acm
+  }
+
+  domain_name = local.domain_name
+  zone_id     = data.aws_route53_zone.domain.zone_id
 
   validation_method = "DNS"
 
   wait_for_validation = true
 
-  tags = merge(local.tags, { Name = local.domain_name })
+  tags = merge({ Name = local.domain_name, Role = "Certificate" }, local.tags)
 } 
 
+#################
+## API Gateway
+#################
 module "apigateways" {
   source  = "terraform-aws-modules/apigateway-v2/aws"
   version = "2.2.2"
@@ -95,3 +112,24 @@ resource "aws_apigatewayv2_api_mapping" "mapping" {
   api_mapping_key = each.key
 }
 
+#################
+## DNS Record
+#################
+module "records" {
+  source  = "terraform-aws-modules/route53/aws//modules/records"
+  version = "~> 2.0"
+
+  zone_id = data.aws_route53_zone.domain.zone_id
+
+  records = [
+    {
+      name    = var.subdomain
+      type    = "A"
+      alias   = {
+        name    = module.apigateways.apigatewayv2_domain_name_target_domain_name
+        zone_id = module.apigateways.apigatewayv2_domain_name_hosted_zone_id
+        evaluate_target_health = true
+      }
+    },
+  ]
+}
