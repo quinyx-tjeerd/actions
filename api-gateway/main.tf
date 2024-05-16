@@ -148,5 +148,5 @@ resource "aws_lambda_permission" "allow_api_gateway" {
   action        = "lambda:InvokeFunction"
   function_name = each.value.function
   principal     = "apigateway.amazonaws.com"
-  source_arn    = format("arn:aws:apigateway:%s:%s:%s/%s/%s%s", var.region, data.aws_caller_identity.current.account_id, module.apigateways.apigatewayv2_api_id, each.value.stage, each.value.method, each.value.path)
+  source_arn    = format("arn:aws:execute-api:%s:%s:%s/%s/%s%s", var.region, data.aws_caller_identity.current.account_id, module.apigateways.apigatewayv2_api_id, each.value.stage, each.value.method, each.value.path)
 }
