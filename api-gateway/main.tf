@@ -43,8 +43,18 @@ locals {
     }
 }
 
+#################
+## Data gathering
+#################
+data "aws_caller_identity" "current" {}
+
 data "aws_route53_zone" "domain" {
   name = local.domain
+}
+
+data "aws_lambda_function" "lambdas" {
+  for_each      = local.lambdas
+  function_name = each.value.lambda_arn
 }
 
 #################
@@ -135,13 +145,11 @@ module "records" {
 #################
 ## Lambda Execution Permission
 #################
-data "aws_caller_identity" "current" {}
-
 resource "aws_lambda_permission" "allow_api_gateway" {
   for_each      = local.lambda_permissions
   statement_id  = "apigateway-${local.gateway_name}"
   action        = "lambda:InvokeFunction"
-  function_name = each.value.function
+  function_name = data.aws_lambda_function.lambdas[each.value.path].arn
   principal     = "apigateway.amazonaws.com"
   source_arn    = format("arn:aws:apigateway:%s:%s:%s/%s/%s%s", var.region, data.aws_caller_identity.current.account_id, module.apigateways.apigatewayv2_api_id, each.value.stage, each.value.method, each.value.path)
 }
