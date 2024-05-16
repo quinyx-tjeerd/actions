@@ -19,7 +19,7 @@ locals {
   gateway_name = format("%s-%s", var.service, var.region)
   domain_name  = try(var.custom_domain_name, format("%s.lambda.quinyx.io", local.gateway_name))
   domain = regex("[^.]+.[^.]+$", local.domain_name)
-  subdomain = replace(local.domain_name, regex("[^.]+.[^.]+$", local.domain_name), "")
+  subdomain = replace(local.domain_name, regex(".[^.]+.[^.]+$", local.domain_name), "")
   custom_cert  = !endswith(local.domain_name, ".lambda.quinyx.io")
   domain_cert  = local.custom_cert ? try(module.acm["cert"].acm_certificate_arn, null) : try(local.certs[var.region], null)
 
