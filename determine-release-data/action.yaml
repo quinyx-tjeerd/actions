@@ -1,0 +1,54 @@
+name: Determine Release Data
+description: Extract release data from tag and config file
+inputs:
+  service:
+    description: Service name
+    required: true
+  path:
+    description: Service path
+    required: true
+outputs:
+  service:
+    description: Service Name
+    value: "${{ steps.tag.outputs.service }}"
+  version:
+    description: Service Version
+    value: "${{ steps.tag.outputs.version }}"
+  build:
+    description: Service Build
+    value: "${{ steps.tag.outputs.build }}"
+  release:
+    description: Release Type
+    value: "${{ steps.tag.outputs.release }}"
+  environments:
+    description: Release Environments
+    value: "${{ steps.environments.outputs.environments }}"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Derive info from Tag
+      id: tag
+      shell: bash
+      run: |
+        TAG=$(jq -cR 'capture("^(?<service>[a-z]+)/(?<version>[0-9]+.[0-9]+.[0-9]+)(-(?<release>(alpha|beta|rc)))?") | .release //= "final"' <<< '${{ github.ref_name }}')
+        echo $TAG | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_OUTPUT
+        echo 'Data:'
+        echo $TAG | jq
+
+        BUILD=$(jq -rR 'capture("^[a-z]+/[0-9]+.[0-9]+.[0-9]+(-(?<build>(alpha|beta|rc).*))?$") | .build // ""' <<< '${{ github.ref_name }}')
+        echo 'Build: $BUILD'
+        echo "build=$BUILD" >> $GITHUB_OUTPUT
+
+    - name: Determine environments based on release type
+      id: environments
+      shell: bash
+      run: |
+        if [ ! -f infra/deploy_tags.yaml ]; then
+          echo "Could not find 'infra/deploy_tags.yaml'."
+          exit 1;
+        fi
+        ENVIRONMENTS=$(yq -o json infra/deploy_tags.yaml | jq -c 'with_entries(select(.key == "${{ steps.tag.outputs.release }}")) | .[].environments')
+        echo "environments=$ENVIRONMENTS" >> $GITHUB_OUTPUT
+        echo 'Data:'
+        echo $ENVIRONMENTS | jq
