@@ -4,6 +4,9 @@ outputs:
   service:
     description: Service Name
     value: "${{ steps.tag.outputs.service }}"
+  path:
+    description: Service path
+    value: "${{ steps.path.outputs.path }}"
   version:
     description: Service Version
     value: "${{ steps.tag.outputs.version }}"
@@ -45,3 +48,11 @@ runs:
         echo "environments=$ENVIRONMENTS" >> $GITHUB_OUTPUT
         echo 'Data:'
         echo $ENVIRONMENTS | jq
+
+    - name: Determine service path
+      id: path
+      shell: bash
+      run: |
+        PATH=$(find . -type d -name '${{ steps.tag.outputs.service }}' | grep -v './.git/' | head -n1)
+        echo 'Path: $PATH'
+        echo "path=$PATH" >> $GITHUB_OUTPUT
