@@ -1,0 +1,33 @@
+name: Determine Release Parts
+description: Determine what actions need to be triggered based on configs
+inputs:
+  path:
+    description: Path to source files
+    required: true
+outputs:
+  lambdas:
+    description: Boolean whether the service has lambdas
+    value: "${{ steps.release.outputs.lambdas }}"
+  api-gateway:
+    description: Boolean whether the service has api-gateway
+    value: "${{ steps.release.outputs.api_gateway }}"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Determine what to release
+      id: release
+      shell: bash
+      run: |
+        LAMBDAS=false
+        API_GATEWAY=false
+
+        if [ ! -f ${{ inputs.path }}/lambdas.yaml ]; then
+          LAMBDAS=true
+        fi
+        if [ ! -f ${{ inputs.path }}/api-gateway.yaml ]; then
+          API_GATEWAY=true
+        fi
+
+        echo "lambdas=$LAMBDAS" >> $GITHUB_OUTPUT
+        echo "api_gateway=$API_GATEWAY" >> $GITHUB_OUTPUT
