@@ -11,6 +11,9 @@ outputs:
   api-gateway:
     description: Boolean whether the service has api-gateway
     value: "${{ steps.release.outputs.api_gateway }}"
+  any:
+    description: Boolean whether the service has any releasable parts
+    value: "${{ steps.release.outputs.lambdas || steps.release.outputs.api_gateway }}"
 runs:
   using: "composite"
   steps:
