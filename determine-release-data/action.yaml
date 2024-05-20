@@ -1,12 +1,5 @@
 name: Determine Release Data
 description: Extract release data from tag and config file
-inputs:
-  service:
-    description: Service name
-    required: true
-  path:
-    description: Service path
-    required: true
 outputs:
   service:
     description: Service Name
