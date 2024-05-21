@@ -54,5 +54,5 @@ runs:
       shell: bash
       run: |
         PATH=$(find . -type d -name '${{ steps.tag.outputs.service }}' | grep -v './.git/' | head -n1)
-        echo 'Path: $PATH'
+        echo "Path: $PATH"
         echo "path=$PATH" >> $GITHUB_OUTPUT
