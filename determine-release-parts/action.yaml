@@ -25,10 +25,10 @@ runs:
         LAMBDAS=false
         API_GATEWAY=false
 
-        if [ ! -f ${{ inputs.path }}/lambdas.yaml ]; then
+        if [ -f ${{ inputs.path }}/lambdas.yaml ]; then
           LAMBDAS=true
         fi
-        if [ ! -f ${{ inputs.path }}/api-gateway.yaml ]; then
+        if [ -f ${{ inputs.path }}/api-gateway.yaml ]; then
           API_GATEWAY=true
         fi
 
