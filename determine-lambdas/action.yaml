@@ -1,0 +1,35 @@
+name: Determine Lambdas
+description: Extract Lambdas for given path
+inputs:
+  path:
+    description: Path to source files
+    required: true
+outputs:
+  keys:
+    description: JSON list containing lambda function identifiers
+    value: ${{ steps.lambdas.outputs.keys }}
+  data:
+    description: JSON list containing lambda definitions
+    value: ${{ steps.lambdas.outputs.data }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Determine Lambdas
+      id: lambdas
+      shell: bash
+      run: |
+        DATA="{}"
+        KEYS="[]"
+        if [ -f "${{ inputs.path }}/aws-iam-roles.yaml" ]; then
+          DATA=$(yq -o json '${{ inputs.path }}/lambdas.yaml' | jq -c '.default as $default | .functions | map_values($default + .)')
+          KEYS=$(echo $DATA | jq -c 'keys')
+        fi
+
+        echo 'Keys'
+        echo $KEYS | jq
+        echo 'Data'
+        echo $DATA | jq
+
+        echo "keys=$KEYS" >> "$GITHUB_OUTPUT"
+        echo "data=$DATA" >> "$GITHUB_OUTPUT"
