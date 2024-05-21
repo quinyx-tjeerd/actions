@@ -13,7 +13,7 @@ outputs:
     value: "${{ steps.release.outputs.api_gateway }}"
   any:
     description: Boolean whether the service has any releasable parts
-    value: "${{ steps.release.outputs.lambdas || steps.release.outputs.api_gateway }}"
+    value: "${{ steps.release.outputs.lambdas == 'true' || steps.release.outputs.api_gateway == 'true' }}"
 runs:
   using: "composite"
   steps:
@@ -34,3 +34,6 @@ runs:
 
         echo "lambdas=$LAMBDAS" >> $GITHUB_OUTPUT
         echo "api_gateway=$API_GATEWAY" >> $GITHUB_OUTPUT
+
+        echo "lambdas=$LAMBDAS"
+        echo "api_gateway=$API_GATEWAY"
