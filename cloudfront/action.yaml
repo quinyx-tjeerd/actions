@@ -52,7 +52,7 @@ inputs:
     default: "[]"
   invalidate_cache:
     description: Whether after updating the cloudfront distribution the cache should be invalidated
-    default: "false"
+    default: "true"
 outputs:
   distribution_arn:
     description: "Cloudfront distribution ARN"
